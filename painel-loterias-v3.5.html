@@ -1,0 +1,3827 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Painel de Loterias Pro - Versão 3.2</title>
+    
+    <!-- Ícone do aplicativo - Trevo 🍀 -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍀</text></svg>">
+    
+    <!-- Para dispositivos Apple -->
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍀</text></svg>">
+    
+    <style>
+        :root {
+            --cor-lotofacil: #8b008b;
+            --cor-megasena: #209869;
+            --bg-body: #f0f2f5;
+        }
+        
+        /* PAYWALL - TELA DE ASSINATURA (PRIMEIRA TELA) */
+        #paywall {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 20000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            backdrop-filter: blur(10px);
+            transition: all 0.5s ease;
+        }
+        .paywall-card {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 30px;
+            max-width: 350px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            animation: fadeInUp 0.6s ease-out;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .paywall-card h2 { 
+            color: #9b2a92; 
+            margin-bottom: 15px; 
+            font-size: 32px; 
+        }
+        .paywall-card .welcome-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+        .paywall-card p { 
+            color: #666; 
+            margin-bottom: 30px; 
+            font-size: 16px;
+            line-height: 1.5;
+        }
+        
+        /* Mensagem de assinatura expirada */
+        .aviso-expirado {
+            background: #ff4444;
+            color: white;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .btn-assinar-paywall {
+            background: linear-gradient(45deg, #9b2a92, #6a1b9a);
+            color: white;
+            border: none;
+            padding: 18px 30px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 18px;
+            width: 100%;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(155, 42, 146, 0.3);
+        }
+        .btn-assinar-paywall:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(155, 42, 146, 0.4);
+        }
+        .btn-assinar-paywall:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .restaurar-link { 
+            margin-top: 20px; 
+            font-size: 14px; 
+            color: #999; 
+            text-decoration: underline; 
+            cursor: pointer;
+            display: inline-block;
+        }
+        .restaurar-link:hover {
+            color: #666;
+        }
+        
+        .benefits-list {
+            text-align: left;
+            margin: 20px 0 30px 0;
+            padding: 0 10px;
+        }
+        .benefit-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: #555;
+        }
+        .benefit-item span {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg-body);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        #modalCustom {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 320px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .modal-btns {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .btn-modal {
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            flex: 1;
+            min-width: 80px;
+        }
+        .lf-theme .btn-sim {
+            background: var(--cor-lotofacil);
+            color: white;
+        }
+        .ms-theme .btn-sim {
+            background: var(--cor-megasena);
+            color: white;
+        }
+        .btn-nao {
+            background: #eee;
+            color: #333;
+        }
+        .menu-loterias {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 500px;
+        }
+        .btn-aba {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            color: white;
+            transition: 0.3s;
+            opacity: 0.6;
+            text-transform: uppercase;
+        }
+        .btn-aba.active {
+            opacity: 1;
+            transform: scale(1.05);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .aba-lotofacil {
+            background-color: var(--cor-lotofacil);
+        }
+        .aba-megasena {
+            background-color: var(--cor-megasena);
+        }
+        .container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+            display: none;
+        }
+        .container.active {
+            display: block;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        .busca-concurso {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+            justify-content: center;
+            align-items: center;
+        }
+        .busca-concurso input {
+            width: 100px;
+            padding: 8px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .btn-nav {
+            color: white;
+            border: none;
+            border-radius: 5px;
+            width: 35px;
+            height: 38px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 20px;
+        }
+        .btn-busca {
+            background: #666;
+            color: white;
+            padding: 5px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            height: 38px;
+        }
+        .btn-atualizar {
+            background: #f39c12;
+            color: white;
+            padding: 5px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .concurso-info {
+            text-align: center;
+            font-size: 0.95em;
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 10px;
+            min-height: 20px;
+        }
+        .bolas-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            justify-content: center;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        .bola {
+            width: 32px;
+            height: 32px;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .lf-theme .bola {
+            background: var(--cor-lotofacil);
+        }
+        .lf-theme .bolas-container {
+            background: #f8f0f8;
+        }
+        .ms-theme .bola {
+            background: var(--cor-megasena);
+        }
+        .ms-theme .bolas-container {
+            background: #f0f8f4;
+        }
+        .resumo-geral {
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            text-align: center;
+            line-height: 1.6;
+        }
+        .lf-theme .resumo-geral {
+            background: #eef2ff;
+            border: 1px solid #c7d2fe;
+            color: #3730a3;
+        }
+        .ms-theme .resumo-geral {
+            background: #e6fffa;
+            border: 1px solid #b2f5ea;
+            color: #234e52;
+        }
+        .caixa-acerto {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.03);
+            border-radius: 6px;
+            padding: 4px 12px;
+            display: inline-block;
+            margin: 4px 2px;
+        }
+        .add-jogo-section {
+            background: #eee;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .add-jogo-section input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        .btn {
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 10px;
+            transition: 0.3s;
+            width: 100%;
+        }
+        .btn-add-lf {
+            background: var(--cor-lotofacil);
+            color: white;
+        }
+        .btn-add-ms {
+            background: var(--cor-megasena);
+            color: white;
+        }
+        .btn-random {
+            background: #555;
+            color: white;
+            font-size: 0.85em;
+            margin-top: 5px;
+        }
+        .btn-limpar {
+            background: #ff4444;
+            color: white;
+            margin-top: 10px;
+            opacity: 0.7;
+        }
+        .secao-memoria {
+            background: #f9f9f9;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        .grid-memoria {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            margin-top: 10px;
+        }
+        .btn-memoria {
+            padding: 8px 2px;
+            font-size: 11px;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .btn-memoria:hover {
+            background: #eee;
+        }
+        .btn-memoria.slot-active {
+            background: #444;
+            color: #fff;
+            border-color: #000;
+            transform: scale(1.05);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .btn-memoria.slot-vazio {
+            background: #f0f0f0;
+            color: #888;
+            border-color: #ddd;
+            font-style: italic;
+        }
+        .btn-guardar {
+            width: 100%;
+            font-size: 12px;
+            padding: 8px;
+            background: #444;
+            color: white;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+        }
+        .badge-vitorias {
+            background: #ffd700;
+            color: #000;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 5px;
+            border: 1px solid #daa520;
+            font-weight: 900;
+        }
+        .badge-doze {
+            background: #00c3ff;
+            color: #fff;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 5px;
+            border: 1px solid #0096c7;
+            font-weight: 900;
+        }
+        .badge-treze {
+            background: #3730a3;
+            color: #fff;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 5px;
+            border: 1px solid #1e1b4b;
+            font-weight: 900;
+        }
+        .badge-onze {
+            background: #f39c12;
+            color: #fff;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 5px;
+            border: 1px solid #e67e22;
+            font-weight: 900;
+        }
+        .badge-dinheiro {
+            background: #209869;
+            color: #fff;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 5px;
+            font-weight: 900;
+        }
+        .painel-financeiro {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            background: #fff;
+            border: 1px solid #ddd;
+        }
+        .financeiro-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        .financeiro-total {
+            border-top: 1px solid #eee;
+            margin-top: 10px;
+            padding-top: 10px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .lucro {
+            color: #209869;
+        }
+        .prejuizo {
+            color: #d93025;
+        }
+        .contagem-especial {
+            margin-top: 10px;
+            padding: 12px;
+            background: #fffde7;
+            border: 1px solid #fbc02d;
+            border-radius: 10px;
+            font-size: 14px;
+            color: #5d4037;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .valor-acumulado {
+            margin-top: 10px;
+            padding: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 8px;
+            font-weight: bold;
+            text-align: center;
+            font-size: 14px;
+            border-left: 4px solid #ffd700;
+        }
+	/* CAIXA DE AVISO/MENSAGEM (ANTIGO VALOR ACUMULADO) */
+        .caixa-aviso {
+            margin-top: 10px;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            font-weight: bold;
+            text-align: center;
+            font-size: 14px;
+            border-left: 4px solid #ffd700;
+            display: none;
+        }
+        .aviso-legal {
+            margin-top: 15px;
+            font-size: 11px;
+            color: #777;
+            text-align: center;
+            line-height: 1.4;
+            padding: 10px;
+            border-top: 1px dashed #ccc;
+        }
+        .card-jogo {
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+        .premiado {
+            background-color: #d4edda !important;
+            border: 2px solid #28a745 !important;
+        }
+        .remove-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            color: #999;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-weight: bold;
+        }
+        .num-acertado-lf {
+            color: var(--cor-lotofacil);
+            font-weight: bold;
+            background: #fdf0fd;
+            border-bottom: 2px solid var(--cor-lotofacil);
+        }
+        .num-acertado-ms {
+            color: var(--cor-megasena);
+            font-weight: bold;
+            background: #f0fdf4;
+            border-bottom: 2px solid var(--cor-megasena);
+        }
+        .progress-container {
+            width: 100%;
+            background-color: #ddd;
+            border-radius: 10px;
+            margin-top: 8px;
+            display: none;
+            height: 10px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: #f39c12;
+            width: 0%;
+            transition: width 0.1s;
+        }
+        .aviso-link {
+            color: #0e9f6e;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .aviso-link:hover {
+            text-decoration: underline;
+        }
+        .aviso-link {font-size: 13px; }
+        
+        .btn-high-performance {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            font-size: 0.85em;
+            margin-top: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 10px;
+            transition: 0.3s;
+            width: 100%;
+        }
+        .btn-high-performance:hover {
+            background: linear-gradient(45deg, #ee5a24, #ff6b6b);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .btn-transferir {
+            background: linear-gradient(45deg, #209869, #1e824c);
+            color: white;
+            font-size: 0.85em;
+            margin-top: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 10px;
+            transition: 0.3s;
+            width: 100%;
+        }
+        .btn-transferir:hover {
+            background: linear-gradient(45deg, #1e824c, #209869);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        #modalScanner {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            align-items: center;
+            justify-content: center;
+            overflow: auto;
+            padding: 10px;
+        }
+        
+        .modal-scanner-content {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 400px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+            margin: auto;
+        }
+        
+        @media (max-width: 480px) {
+            .modal-scanner-content {
+                padding: 15px;
+                max-width: 95%;
+                margin: 10px;
+            }
+            .config-grid {
+                grid-template-columns: 1fr !important;
+                gap: 10px !important;
+            }
+            .painel-financeiro {
+                grid-template-columns: 1fr !important;
+            }
+            .fin-box {
+                border-right: none !important;
+                border-bottom: 1px solid #4a5568;
+                padding-bottom: 8px;
+                margin-bottom: 8px;
+            }
+            .fin-box:last-child {
+                border-bottom: none;
+                margin-bottom: 0;
+            }
+            .scanner-header h2 {
+                font-size: 18px !important;
+            }
+            .close-scanner {
+                padding: 6px 12px !important;
+                font-size: 12px !important;
+            }
+            button {
+                padding: 12px !important;
+                font-size: 14px !important;
+            }
+            input {
+                padding: 8px !important;
+                font-size: 14px !important;
+            }
+        }
+        
+        @media (min-width: 481px) and (max-width: 768px) {
+            .modal-scanner-content {
+                max-width: 450px;
+            }
+            .config-grid {
+                grid-template-columns: 1fr 1fr !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .jogo-item-scanner {
+                padding: 12px !important;
+                margin-bottom: 10px !important;
+            }
+            .dezenas-scanner .bola {
+                width: 28px !important;
+                height: 28px !important;
+                font-size: 12px !important;
+            }
+            .resumo-financeiro-scanner {
+                grid-template-columns: 1fr !important;
+                gap: 6px !important;
+                font-size: 11px !important;
+                padding: 10px !important;
+            }
+            .lucro-destaque-scanner {
+                grid-column: 1 !important;
+                font-size: 13px !important;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .toast-scanner {
+                min-width: 250px !important;
+                padding: 12px 20px !important;
+                font-size: 13px !important;
+            }
+            .toast-scanner[data-position="center"] {
+                width: 90% !important;
+                left: 5% !important;
+                transform: translateX(0) !important;
+            }
+        }
+
+        .modal-scanner-confirm {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 10002;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-scanner-confirm-content {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .modal-scanner-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .btn-scanner-modal {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .btn-scanner-confirm {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-scanner-cancel {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-scanner-add {
+            background: #2196F3;
+            color: white;
+        }
+
+        .tooltip-box {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+            background: #2c3e50;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            text-align: center;
+            min-width: 180px;
+        }
+
+        .tooltip-box:after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: #2c3e50;
+        }
+
+        .tooltip-box.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-5px);
+            pointer-events: auto;
+        }
+
+        #modalNumeros {
+            display: none;
+            position: fixed;
+            z-index: 10003;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-numeros-content {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .contador-selecionados {
+            text-align: center;
+            font-weight: bold;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .numeros-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .numero-item {
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: #eee;
+            border: 2px solid #ddd;
+            font-weight: bold;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s;
+        }
+
+        .numero-item:hover {
+            transform: scale(1.1);
+        }
+
+        .numero-item.selecionado {
+            background: var(--cor-lotofacil);
+            color: white;
+            border-color: var(--cor-lotofacil);
+        }
+
+        .btn-confirmar-numeros {
+            width: 100%;
+            padding: 12px;
+            background: var(--cor-lotofacil);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+
+        .btn-confirmar-numeros:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .slot-vazio {
+            background: #f0f0f0 !important;
+            color: #888 !important;
+            border-color: #ddd !important;
+            font-style: italic;
+        }
+
+        .btn-memoria.slot-vazio {
+            background: #f0f0f0 !important;
+            color: #888 !important;
+            border-color: #ddd !important;
+            font-style: italic;
+        }
+
+        .percentual-status {
+            margin-left: 10px;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .percentual-status.positivo {
+            color: #2196F3;
+        }
+
+        .percentual-status.positivo::before {
+            content: "+";
+            margin-right: 2px;
+        }
+
+        .percentual-status.negativo {
+            color: #f44336;
+        }
+
+        .percentual-status.negativo::before {
+            content: "-";
+            margin-right: 2px;
+        }
+
+        .percentual-status.zero {
+            color: #666;
+        }
+
+        .percentual-status.zero::before {
+            content: "";
+            margin-right: 0;
+        }
+
+        /* ============================================= */
+        /* PAINEL DE ESTATÍSTICAS HISTÓRICAS (NOVO)        */
+        /* ============================================= */
+        .painel-estatisticas {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+        }
+        .painel-estatisticas h3 {
+            font-size: 15px;
+            margin-top: 0;
+        }
+        .painel-estatisticas h4 {
+            font-size: 13px;
+            margin: 12px 0 8px 0;
+            color: #444;
+        }
+        .info-concursos-pesquisados {
+            text-align: center;
+            font-size: 12.5px;
+            background: #eef2ff;
+            color: #3730a3;
+            padding: 8px 10px;
+            border-radius: 8px;
+            margin: 0 0 10px 0;
+            border: 1px solid #c7d2fe;
+        }
+        .ms-theme .info-concursos-pesquisados {
+            background: #e6fffa;
+            color: #234e52;
+            border: 1px solid #b2f5ea;
+        }
+        .sub-secao-estat {
+            margin-bottom: 12px;
+        }
+        .grid-numeros-sorteados {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+        }
+        .numero-sorteado-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            font-size: 10px;
+            font-weight: bold;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        .numero-sorteado-item .num-valor {
+            font-size: 13px;
+        }
+        .numero-sorteado-item .num-contagem {
+            font-size: 9px;
+            opacity: 0.85;
+        }
+        .numero-sorteado-item.freq-alta {
+            background: #6a1b9a;
+            color: white;
+            border-color: #4a148c;
+        }
+        .numero-sorteado-item.freq-media {
+            background: #ce93d8;
+            color: #3a0053;
+            border-color: #ab47bc;
+        }
+        .numero-sorteado-item.freq-baixa {
+            background: #f3e5f5;
+            color: #6a1b9a;
+            border-color: #e1bee7;
+        }
+        .numero-sorteado-item.freq-zero {
+            background: #f5f5f5;
+            color: #aaa;
+            border-color: #e0e0e0;
+            font-style: italic;
+        }
+        .ms-theme .numero-sorteado-item.freq-alta {
+            background: #1b5e20;
+            border-color: #0d3f10;
+        }
+        .ms-theme .numero-sorteado-item.freq-media {
+            background: #a5d6a7;
+            color: #1b3a1d;
+            border-color: #81c784;
+        }
+        .ms-theme .numero-sorteado-item.freq-baixa {
+            background: #e8f5e9;
+            color: #1b5e20;
+            border-color: #c8e6c9;
+        }
+        .lista-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .chip-atraso {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            padding: 5px 10px;
+            font-size: 11.5px;
+            color: #444;
+        }
+        .aviso-estatistica {
+            margin-top: 12px;
+            font-size: 10.5px;
+            color: #888;
+            line-height: 1.4;
+            border-top: 1px dashed #ddd;
+            padding-top: 8px;
+        }
+        .btn-ver-contagem {
+            margin-top: 8px;
+            display: inline-block;
+            background: #444;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 6px 12px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-gerar-substituicao {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 13.5px;
+            cursor: pointer;
+            color: white;
+            background: linear-gradient(45deg, #ff9800, #f57c00);
+            transition: 0.3s;
+        }
+        .btn-gerar-substituicao:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+        .badge-identificador {
+            position: absolute;
+            top: -10px;
+            left: 10px;
+            background: #333;
+            color: white;
+            font-size: 10px;
+            font-weight: 900;
+            padding: 3px 10px;
+            border-radius: 10px;
+            letter-spacing: 0.3px;
+        }
+        .lf-theme .badge-identificador {
+            background: var(--cor-lotofacil);
+        }
+        .ms-theme .badge-identificador {
+            background: var(--cor-megasena);
+        }
+        .badge-origem-substituicao {
+            display: inline-block;
+            background: #fff3e0;
+            color: #e65100;
+            border: 1px solid #ffcc80;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 10px;
+            margin: 4px 2px;
+        }
+        .lf-theme .btn-ver-contagem {
+            background: var(--cor-lotofacil);
+        }
+        .ms-theme .btn-ver-contagem {
+            background: var(--cor-megasena);
+        }
+
+        /* MODAL DE CONTAGEM POR JOGO */
+        #modalContagemJogo {
+            display: none;
+            position: fixed;
+            z-index: 10004;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-contagem-content {
+            background: white;
+            padding: 22px;
+            border-radius: 15px;
+            max-width: 380px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        .modal-contagem-content h3 {
+            text-align: center;
+            margin-top: 0;
+        }
+        .grid-contagem-jogo {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        .btn-fechar-modal {
+            width: 100%;
+            padding: 12px;
+            background: #666;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body class="lf-theme">
+
+    <!-- CONTADOR DE TRIAL FIXO -->
+    <div id="contadorTrialFixo" onclick="assinarPeloContador()" style="display: none; position: fixed; top: 0; left: 0; right: 0; background: linear-gradient(135deg, #667eea, #764ba2); color: white; text-align: center; padding: 10px; font-size: 13px; font-weight: bold; z-index: 10001; cursor: pointer;">
+        🎉 <strong>Teste Grátis!</strong> Você tem <span id="diasRestantesFixo">7</span> dia(s) restantes - Clique para assinar
+    </div>
+
+  <!-- PAYWALL - TELA DE BOAS-VINDAS COM DOIS PLANOS -->
+<div id="paywall">
+    <div class="paywall-card" style="max-height: 90vh; overflow-y: auto; padding: 25px 20px;">
+        <div class="welcome-icon">🍀</div>
+        <h2>LotoFácil Scanner</h2>
+        
+        <!-- Botão Voltar (visível apenas durante o trial) -->
+        <button id="btnVoltarTrial" onclick="voltarParaApp()" style="display: none; position: absolute; top: 12px; left: 12px; background: #ff4444; color: white; border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; font-size: 18px; z-index: 10; box-shadow: 0 2px 8px rgba(255,68,68,0.3); transition: all 0.2s; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">✕</button>
+        
+        <p>Escolha o melhor plano para você</p>
+        
+        <div id="paywallAviso" class="aviso-expirado" style="display:none;"></div>
+        
+        <!-- ===== PLANO MENSAL ===== -->
+        <div class="plano-paywall plano-mensal" id="planoMensal" onclick="selecionarPlanoPaywall('mensal')" style="background: white; border: 3px solid #9b2a92; border-radius: 15px; padding: 15px; margin: 10px 0; cursor: pointer; text-align: left; transition: all 0.3s ease; position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-weight: bold; font-size: 16px; color: #333;">Plano Mensal</div>
+                    <div style="font-size: 11px; color: #888;">Cobrado mensalmente</div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 24px; font-weight: bold; color: #9b2a92;">R$ 2,99</div>
+                    <div style="font-size: 11px; color: #9b2a92;">/mês</div>
+                </div>
+            </div>
+            <div style="margin-top: 8px; display: flex; gap: 5px; flex-wrap: wrap;">
+                <span style="background: #e8f5e9; color: #2e7d32; padding: 3px 8px; border-radius: 20px; font-size: 10px; font-weight: bold;">✓ Assine agora</span>
+                <span style="background: #f3e5f5; color: #7b1fa2; padding: 3px 8px; border-radius: 20px; font-size: 10px;">Cancele quando quiser</span>
+            </div>
+            <div id="checkMensal" style="position: absolute; top: 10px; right: 12px; font-size: 20px; color: #9b2a92;">✓</div>
+        </div>
+        
+        <!-- ===== PLANO ANUAL ===== -->
+        <div class="plano-paywall plano-anual" id="planoAnual" onclick="selecionarPlanoPaywall('anual')" style="background: white; border: 2px solid #e0c3fc; border-radius: 15px; padding: 15px; margin: 10px 0; cursor: pointer; text-align: left; transition: all 0.3s ease; position: relative;">
+            <div style="position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, #ff9800, #f57c00); color: white; padding: 3px 12px; border-radius: 20px; font-size: 9px; font-weight: bold; white-space: nowrap;">
+                ⭐ MELHOR OFERTA
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 3px;">
+                <div>
+                    <div style="font-weight: bold; font-size: 16px; color: #333;">Plano Anual</div>
+                    <div style="font-size: 11px; color: #888;">Cobrado anualmente</div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 24px; font-weight: bold; color: #6a1b9a;">R$ 29,90</div>
+                    <div style="font-size: 11px; color: #6a1b9a;">/ano</div>
+                </div>
+            </div>
+            <div style="margin-top: 8px; display: flex; gap: 5px; flex-wrap: wrap;">
+                <span style="background: #fff3e0; color: #e65100; padding: 3px 8px; border-radius: 20px; font-size: 10px; font-weight: bold;">💰 Economize 17%</span>
+                <span style="background: #e8eaf6; color: #283593; padding: 3px 8px; border-radius: 20px; font-size: 10px;">Melhor custo-benefício</span>
+            </div>
+            <div id="checkAnual" style="position: absolute; top: 10px; right: 12px; font-size: 20px; color: #6a1b9a; display: none;">✓</div>
+        </div>
+        
+        <!-- ===== INFORMAÇÕES DO PLANO SELECIONADO ===== -->
+        <div id="infoPlanoSelecionado" style="background: #f3e5f5; padding: 10px; border-radius: 10px; margin: 10px 0; font-size: 12px; color: #4a148c; text-align: center;">
+            <strong>💡 Pagamento único de R$ 2,99</strong><br>
+            <small>Renova automaticamente a cada mês • Cancele quando quiser</small>
+        </div>
+        
+        <div class="benefits-list">
+            <div class="benefit-item"><span>✓</span> Confira múltiplos jogos</div>
+            <div class="benefit-item"><span>✓</span> Histórico de conferências</div>
+            <div class="benefit-item"><span>✓</span> Estatísticas detalhadas</div>
+            <div class="benefit-item"><span>✓</span> Scanner de alta performance</div>
+        </div>
+        
+        <!-- Botão de Assinar (sempre visível) -->
+        <button class="btn-assinar-paywall" id="btnAssinarPaywall" onclick="iniciarAssinaturaPaywall()" style="margin-bottom: 8px;">
+            🔓 ASSINAR PLANO MENSAL • R$ 2,99
+        </button>
+        
+        <!-- Botão Voltar (abaixo do botão de assinar, visível apenas durante trial) -->
+        <button id="btnVoltarTrial2" onclick="voltarParaApp()" style="display: none; width: 100%; padding: 12px; background: #e0e0e0; color: #666; border: none; border-radius: 50px; font-weight: bold; font-size: 14px; cursor: pointer; margin-bottom: 5px;">
+            ← Voltar para o aplicativo
+        </button>
+        
+        <div class="restaurar-link" id="restaurarCompra" style="margin-top: 5px;">Já sou assinante? Restaurar compra</div>
+        
+        <div style="margin-top: 15px; font-size: 10px; color: #999;">
+            Ao assinar, você concorda com os termos de uso<br>
+            Assinatura renovada automaticamente
+        </div>
+    </div>
+</div>
+
+    <div id="modalCustom">
+        <div class="modal-content">
+            <p id="modalMsg" style="font-weight: bold; color: #333;"></p>
+            <div id="modalContainerBotoes" class="modal-btns">
+                <button id="btnSim" class="btn-modal btn-sim">Confirmar</button>
+                <button id="btnNao" class="btn-modal btn-nao">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalScanner">
+        <div class="modal-scanner-content" id="scannerContent"></div>
+    </div>
+
+    <div id="modalNumeros">
+        <div class="modal-numeros-content">
+            <h3 style="color: var(--cor-lotofacil); text-align: center; margin-bottom: 15px;">Selecione os Números</h3>
+            <div class="contador-selecionados" id="contadorSelecionados">Selecionados: 0/15</div>
+            <div class="numeros-grid" id="numerosGrid"></div>
+            <div style="text-align: center; margin: 15px 0;">
+                <button onclick="limparSelecaoNumeros()" style="background: #ff4444; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; margin-right: 10px;">Limpar</button>
+                <button onclick="fecharModalNumeros()" style="background: #666; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">Cancelar</button>
+            </div>
+            <button class="btn-confirmar-numeros" onclick="confirmarSelecaoNumeros()">✅ Confirmar Seleção</button>
+        </div>
+    </div>
+
+    <!-- Modal para mostrar contagem de números de um jogo específico -->
+    <div id="modalContagemJogo">
+        <div class="modal-contagem-content">
+            <h3 id="tituloModalContagem">🎯 Números mais frequentes deste jogo</h3>
+            <p id="infoIntervaloModalContagem" style="font-size:12px;color:#666;text-align:center;margin-bottom:12px;"></p>
+            <div id="gridContagemJogo" class="grid-contagem-jogo">
+                <!-- Será preenchido via JavaScript -->
+            </div>
+            <p style="font-size:10px;color:#999;text-align:center;margin-bottom:12px;">ℹ️ Contagem baseada apenas nos concursos que você já pesquisou nesta sessão. Não representa previsão de resultados futuros.</p>
+            <button class="btn-fechar-modal" onclick="fecharModalContagemJogo()">Fechar</button>
+        </div>
+    </div>
+
+    <div class="menu-loterias">
+        <button class="btn-aba aba-lotofacil active" onclick="switchTab('lotofacil')">Lotofácil</button>
+        <button class="btn-aba aba-megasena" onclick="switchTab('megasena')">Mega-Sena</button>
+        <button class="btn-aba" onclick="abrirScannerAltaPerformance()" style="background: linear-gradient(45deg, #ff6b6b, #ee5a24); flex: 1.2;">🚀 Gerar jogos baseados em concursos anteriores</button>
+    </div>
+
+    <div id="cont-lotofacil" class="container active lf-theme">
+        <h2 style="color:var(--cor-lotofacil)">Lotofácil</h2>
+        <div class="busca-concurso">
+            <button class="btn-nav aba-lotofacil" onclick="navegarConcurso('lotofacil', -1)">-</button>
+            <input type="number" id="numLF" placeholder="Nº" value="3657">
+            <button class="btn-nav aba-lotofacil" onclick="navegarConcurso('lotofacil', 1)">+</button>
+            <button class="btn-busca" onclick="resetarEBuscar('lotofacil', document.getElementById('numLF').value)">Buscar</button>
+            <button class="btn-atualizar" onclick="atualizarPaginaSemPerderAba()" title="Atualizar página">↺</button>
+        </div>
+        <p id="infoLF" class="concurso-info">Carregando...</p>
+        <div id="bolasLF" class="bolas-container"></div>
+        <div id="resumoLF" class="resumo-geral">Aguardando...</div>
+        <div class="add-jogo-section">
+            <label><b>Cadastrar Jogo:</b></label>
+            <div style="display: flex; gap: 5px;">
+                <input type="text" id="inputLF" placeholder="Digite de 15 a 20 números" style="flex: 1;">
+                <button onclick="abrirSelecionadorNumeros('lotofacil')" style="background: var(--cor-lotofacil); color: white; border: none; border-radius: 5px; width: 40px; cursor: pointer; font-weight: bold; font-size: 18px;">🎯</button>
+            </div>
+            <button class="btn btn-add-lf" onclick="adicionarJogo('lotofacil')">Salvar Jogo na Lista</button>
+            <button class="btn btn-random" onclick="abrirModalOpcoesSurpresinha('lotofacil')">🎲 Gerar Surpresinhas (Múltiplas opções)</button>
+        </div>
+        <div class="secao-memoria">
+            <button class="btn-guardar" onclick="prepararSalvamentoSlot('lotofacil')">💾 Guardar Lista Atual em um Slot</button>
+            <div class="grid-memoria">
+                <button class="btn-memoria btn-memoria-lf-A" onclick="carregarSlot('lotofacil', 'A')">Grupo A</button>
+                <button class="btn-memoria btn-memoria-lf-B" onclick="carregarSlot('lotofacil', 'B')">Grupo B</button>
+                <button class="btn-memoria btn-memoria-lf-C" onclick="carregarSlot('lotofacil', 'C')">Grupo C</button>
+                <button class="btn-memoria btn-memoria-lf-D" onclick="carregarSlot('lotofacil', 'D')">Grupo D</button>
+                <button class="btn-memoria btn-memoria-lf-E" onclick="carregarSlot('lotofacil', 'E')">Grupo E</button>
+            </div>
+        </div>
+        <div id="listaLF"></div>
+        <button class="btn btn-limpar" onclick="confirmarLimpar('lotofacil')">Apagar Tudo</button>
+        <div class="painel-financeiro" id="finLF">
+            <div class="financeiro-item"><span>Total Gasto:</span> <span id="valInvestidoLF">R$ 0,00</span></div>
+            <div class="financeiro-item"><span>Total de Ganhos:</span> <span id="valGanhoLF">R$ 0,00</span></div>
+            <div class="financeiro-total" id="statusLF">Saldo: R$ 0,00</div>
+            <div class="percentual-status" id="percentualLF"></div>
+        </div>
+        <div id="contagemEspecialLF" class="contagem-especial">
+            <strong>🏆 Prêmios de Elite Acumulados:</strong>
+            <div id="count14LF">14 Acertos: 0x</div>
+            <div id="count15LF">15 Acertos: 0x</div>
+            <div id="valorAcumuladoLF" class="valor-acumulado" style="display:none;"></div>
+        </div>
+ 	<div>
+	    <div id="caixaAvisoLF" class="caixa-aviso"></div>
+    	</div>
+
+        <!-- ============================================= -->
+        <!-- PAINEL DE ESTATÍSTICAS HISTÓRICAS (LOTOFÁCIL)   -->
+        <!-- ============================================= -->
+        <div class="painel-estatisticas" id="painelEstatisticasLF">
+            <h3 style="text-align:center; color:var(--cor-lotofacil);">📊 Estatísticas dos Concursos Pesquisados</h3>
+            <p class="info-concursos-pesquisados" id="infoConcursosPesquisadosLF">📋 Nenhum concurso pesquisado ainda nesta sessão. Use "Buscar" ou "Conferência em Massa" para gerar estatísticas.</p>
+            <div class="sub-secao-estat">
+                <h4>📊 Números mais sorteados nos concursos pesquisados</h4>
+                <div id="contagemSorteadosLF" class="grid-numeros-sorteados"></div>
+            </div>
+            <div class="sub-secao-estat">
+                <h4>⏳ Dezenas mais atrasadas</h4>
+                <div id="atrasoNumerosLF" class="lista-chips"></div>
+            </div>
+            <div class="sub-secao-estat">
+                <button class="btn-gerar-substituicao" onclick="abrirModalOpcoesSubstituicao('lotofacil')">🔄 Gerar Jogos por Substituição (baseado na frequência)</button>
+            </div>
+            <p class="aviso-estatistica">ℹ️ Estas estatísticas são apenas uma análise histórica dos concursos que você pesquisou nesta sessão. A Lotofácil é um sorteio aleatório e independente — números "atrasados" ou "frequentes" não têm mais nem menos chance de sair no próximo concurso.</p>
+        </div>
+
+        <div class="aviso-legal">
+            ⚠️ <b>Aviso:</b> Este site/aplicativo é uma ferramenta independente para facilitar a conferência de jogos da LotoFácil e da Mega-Sena. Pode ocorre eventuais inconsistências nos resultados apresentados. <b>Sempre confira seu bilhete no site oficial das Lotérias Caixa.</b> Os jogos gerados neste site/aplicativo <b>não garante ganhos reais ou prêmios nos concursos futuros</b>. O aplicativo não possui vínculo com a Caixa Econômica Federal.<br><br>
+            <b>🔞 APOSTAR É PROIBIDO PARA MENORES DE 18 ANOS</b>
+        </div>
+    </div>
+
+    <div id="cont-megasena" class="container ms-theme">
+        <h2 style="color:var(--cor-megasena)">Mega-Sena</h2>
+        <div class="busca-concurso">
+            <button class="btn-nav aba-megasena" onclick="navegarConcurso('megasena', -1)">-</button>
+            <input type="number" id="numMS" placeholder="Nº" value="2994">
+            <button class="btn-nav aba-megasena" onclick="navegarConcurso('megasena', 1)">+</button>
+            <button class="btn-busca" onclick="resetarEBuscar('megasena', document.getElementById('numMS').value)">Buscar</button>
+            <button class="btn-atualizar" onclick="atualizarPaginaSemPerderAba()" title="Atualizar página">↺</button>
+        </div>
+        <p id="infoMS" class="concurso-info">Carregando...</p>
+        <div id="bolasMS" class="bolas-container"></div>
+        <div id="resumoMS" class="resumo-geral">Aguardando...</div>
+        <div class="add-jogo-section">
+            <label><b>Cadastrar Jogo:</b></label>
+            <div style="display: flex; gap: 5px;">
+                <input type="text" id="inputMS" placeholder="Digite de 6 a 20 números" style="flex: 1;">
+                <button onclick="abrirSelecionadorNumeros('megasena')" style="background: var(--cor-megasena); color: white; border: none; border-radius: 5px; width: 40px; cursor: pointer; font-weight: bold; font-size: 18px;">🎯</button>
+            </div>
+            <button class="btn btn-add-ms" onclick="adicionarJogo('megasena')">Salvar Jogo na Lista</button>
+            <button class="btn btn-random" onclick="abrirModalOpcoesSurpresinha('megasena')">🎲 Gerar Surpresinhas (Múltiplas opções)</button>
+        </div>
+        <div class="secao-memoria">
+            <button class="btn-guardar" onclick="prepararSalvamentoSlot('megasena')">💾 Guardar Lista Atual em um Slot</button>
+            <div class="grid-memoria">
+                <button class="btn-memoria btn-memoria-ms-A" onclick="carregarSlot('megasena', 'A')">Grupo A</button>
+                <button class="btn-memoria btn-memoria-ms-B" onclick="carregarSlot('megasena', 'B')">Grupo B</button>
+                <button class="btn-memoria btn-memoria-ms-C" onclick="carregarSlot('megasena', 'C')">Grupo C</button>
+                <button class="btn-memoria btn-memoria-ms-D" onclick="carregarSlot('megasena', 'D')">Grupo D</button>
+                <button class="btn-memoria btn-memoria-ms-E" onclick="carregarSlot('megasena', 'E')">Grupo E</button>
+            </div>
+        </div>
+        <div id="listaMS"></div>
+        <button class="btn btn-limpar" onclick="confirmarLimpar('megasena')">Apagar Tudo</button>
+        <div class="painel-financeiro" id="finMS">
+            <div class="financeiro-item"><span>Total Gasto:</span> <span id="valInvestidoMS">R$ 0,00</span></div>
+            <div class="financeiro-item"><span>Total de Ganhos:</span> <span id="valGanhoMS">R$ 0,00</span></div>
+            <div class="financeiro-total" id="statusMS">Saldo: R$ 0,00</div>
+            <div class="percentual-status" id="percentualMS"></div>
+        </div>
+        <div id="contagemEspecialMS" class="contagem-especial">
+            <strong>🏆 Prêmios de Elite Acumulados:</strong>
+            <div id="count14MS">Quina: 0x</div>
+            <div id="count15MS">Sena: 0x</div>
+            <div id="valorAcumuladoMS" class="valor-acumulado" style="display:none;"></div>
+        </div>
+	<div>
+	<div id="caixaAvisoMS" class="caixa-aviso"></div>
+        </div>
+
+        <!-- ============================================= -->
+        <!-- PAINEL DE ESTATÍSTICAS HISTÓRICAS (MEGA-SENA)   -->
+        <!-- ============================================= -->
+        <div class="painel-estatisticas" id="painelEstatisticasMS">
+            <h3 style="text-align:center; color:var(--cor-megasena);">📊 Estatísticas dos Concursos Pesquisados</h3>
+            <p class="info-concursos-pesquisados" id="infoConcursosPesquisadosMS">📋 Nenhum concurso pesquisado ainda nesta sessão. Use "Buscar" ou "Conferência em Massa" para gerar estatísticas.</p>
+            <div class="sub-secao-estat">
+                <h4>📊 Números mais sorteados nos concursos pesquisados</h4>
+                <div id="contagemSorteadosMS" class="grid-numeros-sorteados"></div>
+            </div>
+            <div class="sub-secao-estat">
+                <h4>⏳ Dezenas mais atrasadas</h4>
+                <div id="atrasoNumerosMS" class="lista-chips"></div>
+            </div>
+            <div class="sub-secao-estat">
+                <button class="btn-gerar-substituicao" onclick="abrirModalOpcoesSubstituicao('megasena')">🔄 Gerar Jogos por Substituição (baseado na frequência)</button>
+            </div>
+            <p class="aviso-estatistica">ℹ️ Estas estatísticas são apenas uma análise histórica dos concursos que você pesquisou nesta sessão. A Mega-Sena é um sorteio aleatório e independente — números "atrasados" ou "frequentes" não têm mais nem menos chance de sair no próximo concurso.</p>
+        </div>
+
+        <div class="aviso-legal">
+            ⚠️ <b>Aviso:</b> Este site/aplicativo é uma ferramenta independente para facilitar a conferência de jogos da LotoFácil e da Mega-Sena. Pode ocorre eventuais inconsistências nos resultados apresentados. <b>Sempre confira seu bilhete no site oficial das Lotérias Caixa.</b> Os jogos gerados neste site/aplicativo <b>não garante ganhos reais ou prêmios nos concursos futuros</b>. O aplicativo não possui vínculo com a Caixa Econômica Federal. <br><br>
+            <b>🔞 APOSTAR É PROIBIDO PARA MENORES DE 18 ANOS</b>
+        </div>
+    </div>
+
+    <script>
+        // =============================================
+        // PAYWALL E ASSINATURA - COMUNICAÇÃO COM ANDROID
+        // =============================================
+        let usuarioPremium = false;
+        let assinaturaExpirada = false;
+        
+        // Variável para armazenar informações do trial
+        let trialInfo = {
+            isInTrial: false,
+            remainingDays: 0,
+            trialEnded: false
+        };
+        
+        // RESULTADO MANUAL (FALLBACK) - Usado quando a API está fora do ar
+        const RESULTADO_MANUAL = {
+            lotofacil: {
+                concurso: 3730,
+                dezenas: [02,03,05,06,08,11,12,13,14,15,16,19,20,21,24],
+                data: "08/07/2026",
+             //   valorAumulado: "BOA SORTE"
+            },
+            megasena: {
+                concurso: 3026,
+                dezenas: [14,19,42,45,48,54],
+                data: "02/07/2026",
+             //   valorAcumulado: "Boa sorte"
+            }
+        };
+        
+        // Função para carregar resultado manual (fallback)
+        function carregarResultadoManual(tipo) {
+            const manual = RESULTADO_MANUAL[tipo];
+            if (manual && manual.dezenas && manual.dezenas.length > 0) {
+                console.log(`📢 Usando resultado MANUAL para ${tipo} - Concurso ${manual.concurso}`);
+                dados[tipo].concursoAtual = manual.concurso;
+                dados[tipo].ganhadores = manual.dezenas;
+                
+                const idInfo = tipo === 'lotofacil' ? 'infoLF' : 'infoMS';
+                const idInput = tipo === 'lotofacil' ? 'numLF' : 'numMS';
+                const idBolas = tipo === 'lotofacil' ? 'bolasLF' : 'bolasMS';
+                
+                const inputEl = document.getElementById(idInput);
+                if (inputEl) inputEl.value = manual.concurso;
+                
+                const infoEl = document.getElementById(idInfo);
+                if (infoEl) infoEl.innerHTML = `Concurso ${manual.concurso} - Data: ${manual.data}`;
+                
+                const bolasEl = document.getElementById(idBolas);
+                if (bolasEl) {
+                    bolasEl.innerHTML = '';
+                    manual.dezenas.forEach(num => {
+                        bolasEl.innerHTML += `<div class="bola">${num}</div>`;
+                    });
+                }
+                
+                atualizarValorAcumulado(tipo, manual.valorAcumulado);
+                renderizar(tipo);
+                return true;
+            }
+            return false;
+        }
+        
+        function atualizarValorAcumulado(tipo, valor) {
+            const elementoId = tipo === 'lotofacil' ? 'valorAcumuladoLF' : 'valorAcumuladoMS';
+            const elemento = document.getElementById(elementoId);
+            if (elemento && valor) {
+                elemento.style.display = 'block';
+                elemento.innerHTML = `💰: ${valor}`;
+            }
+        }
+        
+        // Função para mostrar banner do trial (ATUALIZADA)
+	function mostrarBannerTrial(diasRestantes) {
+    const bannerExistente = document.getElementById('trialBanner');
+    if (bannerExistente) bannerExistente.remove();
+    
+    if (diasRestantes <= 3 && diasRestantes > 0) {
+        const banner = document.createElement('div');
+        banner.id = 'trialBanner';
+        banner.style.cssText = `
+            position: fixed;
+            top: 45px;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: white;
+            text-align: center;
+            padding: 10px;
+            font-size: 13px;
+            font-weight: bold;
+            z-index: 10000;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        `;
+        
+        const mensagem = diasRestantes === 1 
+            ? "⚠️ ÚLTIMO DIA de teste grátis! Clique para assinar ⚠️"
+            : `⏰ Seu teste grátis termina em ${diasRestantes} dias! Clique para assinar →`;
+        
+        banner.innerHTML = mensagem;
+        
+        // Chamando a mesma função do segundo código ao clicar
+        banner.onclick = () => {
+            assinarPeloContador();
+        };
+        
+        document.body.insertBefore(banner, document.body.firstChild);
+        document.body.style.paddingTop = '95px';
+    }
+}
+        
+        // Função para atualizar o contador fixo
+        function atualizarContadorFixo() {
+
+            const contadorEl = document.getElementById('contadorTrialFixo');
+            const diasSpan = document.getElementById('diasRestantesFixo');
+            
+            if (contadorEl && diasSpan) {
+                if (trialInfo.isInTrial && trialInfo.remainingDays > 0) {
+                    contadorEl.style.display = 'block';
+                    diasSpan.innerText = trialInfo.remainingDays;
+                    
+                    if (trialInfo.remainingDays === 1) {
+                        contadorEl.style.background = 'linear-gradient(135deg, #ff4444, #cc0000)';
+                    } else if (trialInfo.remainingDays <= 3) {
+                        contadorEl.style.background = 'linear-gradient(135deg, #ff9800, #f57c00)';
+                    } else {
+                        contadorEl.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
+                    }
+                } else {
+                    contadorEl.style.display = 'none';
+                }
+            }
+        }
+        
+        // Funções do sistema de trial
+        window.setTrialInfo = function(infoJSON) {
+            try {
+                let info = typeof infoJSON === 'string' ? JSON.parse(infoJSON) : infoJSON;
+                trialInfo = {
+                    isInTrial: info.isInTrial || false,
+                    remainingDays: info.remainingDays || 0,
+                    trialEnded: info.trialEnded || false
+                };
+                console.log('📱 Trial info recebida:', trialInfo);
+                atualizarContadorFixo();
+                if (trialInfo.isInTrial && trialInfo.remainingDays > 0 && trialInfo.remainingDays <= 3) {
+                    mostrarBannerTrial(trialInfo.remainingDays);
+                }
+                verificarStatusPremium();
+            } catch(e) {
+                console.error('Erro ao processar trial info:', e);
+            }
+        };
+        
+        window.showTrialRemaining = function(daysLeft) {
+            console.log('📱 Dias restantes do trial:', daysLeft);
+            if (daysLeft > 0) {
+                trialInfo.isInTrial = true;
+                trialInfo.remainingDays = daysLeft;
+                trialInfo.trialEnded = false;
+                atualizarContadorFixo();
+                if (daysLeft <= 3) mostrarBannerTrial(daysLeft);
+                verificarStatusPremium();
+            }
+        };
+        
+        window.getTrialInfo = function() {
+            return JSON.stringify(trialInfo);
+        };
+        
+       function assinarPeloContador() {
+    console.log('🛒 Clique no contador - mostrando planos...');
+    
+    // Mostra o paywall com os planos
+    const paywall = document.getElementById('paywall');
+    if (paywall && paywall.style.display === 'none') {
+        paywall.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+    
+    // Rola a página até o paywall
+    if (paywall) {
+        paywall.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    // Atualiza a mensagem de aviso no paywall
+    const avisoElement = document.getElementById('paywallAviso');
+    if (avisoElement && trialInfo.isInTrial && trialInfo.remainingDays > 0) {
+        avisoElement.style.display = 'block';
+        avisoElement.style.background = '#4CAF50';
+        avisoElement.style.color = 'white';
+        avisoElement.innerHTML = `🎉 Você tem ${trialInfo.remainingDays} dia(s) de teste grátis!<br><small>Assine agora e continue usando após o período de testes</small>`;
+    }
+    
+    // ===== NOVO: Mostra os botões de voltar durante o trial =====
+    if (trialInfo.isInTrial && trialInfo.remainingDays > 0) {
+        const btnVoltar1 = document.getElementById('btnVoltarTrial');
+        const btnVoltar2 = document.getElementById('btnVoltarTrial2');
+        if (btnVoltar1) btnVoltar1.style.display = 'flex';
+        if (btnVoltar2) btnVoltar2.style.display = 'block';
+    }
+    // ===========================================================
+    
+    // Garante que o plano mensal está selecionado por padrão
+    if (typeof selecionarPlanoPaywall === 'function') {
+        selecionarPlanoPaywall('mensal');
+    }
+    
+    // Dá um pequeno destaque visual no paywall
+    const paywallCard = document.querySelector('.paywall-card');
+    if (paywallCard) {
+        paywallCard.style.animation = 'none';
+        paywallCard.offsetHeight; // Trigger reflow
+        paywallCard.style.animation = 'fadeInUp 0.6s ease-out';
+    }
+}
+        
+        window.onAppReady = function() {
+            console.log('✅ App pronto! Verificando status premium...');
+            if (typeof AndroidBridge !== 'undefined') {
+                if (AndroidBridge.getTrialInfo) {
+                    const info = AndroidBridge.getTrialInfo();
+                    if (info) window.setTrialInfo(info);
+                }
+                if (AndroidBridge.getRemainingTrialDays) {
+                    const days = AndroidBridge.getRemainingTrialDays();
+                    if (days > 0) window.showTrialRemaining(days);
+                }
+            }
+            verificarStatusPremium();
+        };
+        
+        window.setPremiumStatus = function(isPremium) {
+            console.log('📱 Status premium recebido do Android:', isPremium);
+            usuarioPremium = isPremium;
+            assinaturaExpirada = !isPremium && localStorage.getItem('premium_expirado') === 'true';
+            
+            if (usuarioPremium && !assinaturaExpirada) {
+                document.getElementById('paywall').style.display = 'none';
+                document.body.style.overflow = 'auto';
+            } else {
+                document.getElementById('paywall').style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+                const avisoElement = document.getElementById('paywallAviso');
+                if (assinaturaExpirada && avisoElement) {
+                    avisoElement.style.display = 'block';
+                    avisoElement.innerHTML = '⚠️ Sua assinatura expirou. Renove para continuar usando o aplicativo. ⚠️';
+                } else if (avisoElement) {
+                    avisoElement.style.display = 'none';
+                }
+            }
+        };
+        
+        function verificarStatusPremium() {
+            if (trialInfo.isInTrial && trialInfo.remainingDays > 0) {
+                console.log('🎯 Usuário em período de TRIAL:', trialInfo.remainingDays, 'dias restantes');
+                usuarioPremium = true;
+                assinaturaExpirada = false;
+                atualizarContadorFixo();
+                const paywall = document.getElementById('paywall');
+                if (paywall) {
+                    paywall.style.display = 'none';
+                    document.body.style.overflow = 'auto';
+                }
+                if (trialInfo.remainingDays <= 3) mostrarBannerTrial(trialInfo.remainingDays);
+                return;
+            }
+            
+            if (typeof AndroidBridge !== 'undefined' && AndroidBridge.isUserPremium) {
+                usuarioPremium = AndroidBridge.isUserPremium();
+                console.log('📱 Status premium via AndroidBridge:', usuarioPremium);
+                if (!usuarioPremium && trialInfo.trialEnded) assinaturaExpirada = true;
+                else assinaturaExpirada = false;
+            } else {
+                const testePremium = localStorage.getItem('premium_fake');
+                const testeExpirado = localStorage.getItem('premium_expirado');
+                if (testeExpirado === 'true') {
+                    assinaturaExpirada = true;
+                    usuarioPremium = false;
+                } else {
+                    usuarioPremium = testePremium === 'true';
+                    assinaturaExpirada = false;
+                }
+                console.log('🌐 Status premium via localStorage (teste):', usuarioPremium);
+            }
+            
+            if (usuarioPremium && !assinaturaExpirada) {
+                const paywall = document.getElementById('paywall');
+                if (paywall) {
+                    paywall.style.display = 'none';
+                    document.body.style.overflow = 'auto';
+                }
+                const banner = document.getElementById('trialBanner');
+                if (banner) {
+                    banner.remove();
+                    document.body.style.paddingTop = '20px';
+                }
+            } else {
+                const paywall = document.getElementById('paywall');
+                if (paywall) {
+                    paywall.style.display = 'flex';
+                    document.body.style.overflow = 'hidden';
+                }
+
+                 // ===== NOVO: Mostra/Esconde botões de voltar =====
+                 const btnVoltar1 = document.getElementById('btnVoltarTrial');
+                 const btnVoltar2 = document.getElementById('btnVoltarTrial2');
+                      if (trialInfo.isInTrial && trialInfo.remainingDays > 0) {
+                      if (btnVoltar1) btnVoltar1.style.display = 'flex';
+                      if (btnVoltar2) btnVoltar2.style.display = 'block';
+                 } else {
+                      if (btnVoltar1) btnVoltar1.style.display = 'none';
+                      if (btnVoltar2) btnVoltar2.style.display = 'none';
+                  }
+        // =================================================
+                
+                const avisoElement = document.getElementById('paywallAviso');
+                if (avisoElement) {
+                    if (assinaturaExpirada) {
+                        avisoElement.style.display = 'block';
+                        avisoElement.innerHTML = '⚠️ Seu período de avaliação GRATUITA de 7 dias expirou! ⚠️<br>Assine agora para continuar usando todos os recursos premium.';
+                        avisoElement.style.background = '#ff4444';
+                        avisoElement.style.color = 'white';
+                    } else if (trialInfo.trialEnded) {
+                        avisoElement.style.display = 'block';
+                        avisoElement.innerHTML = '⚠️ Seu teste grátis acabou! ⚠️<br>Assine o plano premium para continuar usando o aplicativo.';
+                        avisoElement.style.background = '#ff9800';
+                        avisoElement.style.color = 'white';
+                    } else {
+                        avisoElement.style.display = 'none';
+                    }
+                }
+            }
+        }
+                
+        function restaurarCompras() {
+            console.log('🔄 Restaurando compras...');
+            if (typeof AndroidBridge !== 'undefined' && AndroidBridge.restorePurchases) {
+                AndroidBridge.restorePurchases();
+            } else {
+                verificarStatusPremium();
+                if (usuarioPremium) alert("✅ Assinatura restaurada com sucesso!");
+                else alert("ℹ️ Nenhuma assinatura ativa encontrada.");
+            }
+        }
+        
+        window.onPurchaseSuccess = function() {
+            console.log('✅ Compra realizada com sucesso!');
+            usuarioPremium = true;
+            assinaturaExpirada = false;
+            localStorage.setItem('premium_fake', 'true');
+            localStorage.removeItem('premium_expirado');
+            document.getElementById('paywall').style.display = 'none';
+            document.body.style.overflow = 'auto';
+            if (typeof AndroidBridge !== 'undefined' && AndroidBridge.showToast) {
+                AndroidBridge.showToast('🎉 Assinatura ativada com sucesso!');
+            }
+            location.reload();
+        };
+        
+        window.onPurchaseCanceled = function() {
+            console.log('❌ Compra cancelada pelo usuário');
+            if (typeof AndroidBridge !== 'undefined' && AndroidBridge.showToast) {
+                AndroidBridge.showToast('Compra cancelada');
+            }
+        };
+        
+        window.onPurchaseError = function(errorMessage) {
+            console.error('❌ Erro na compra:', errorMessage);
+            if (typeof AndroidBridge !== 'undefined' && AndroidBridge.showToast) {
+                AndroidBridge.showToast('Erro na compra: ' + errorMessage);
+            }
+        };
+        
+        window.onAlreadyPremium = function() {
+            console.log('ℹ️ Usuário já é premium');
+            usuarioPremium = true;
+            assinaturaExpirada = false;
+            localStorage.setItem('premium_fake', 'true');
+            localStorage.removeItem('premium_expirado');
+            location.reload();
+        };
+        
+        window.onSubscriptionExpired = function() {
+            console.log('⚠️ Assinatura expirada');
+            assinaturaExpirada = true;
+            usuarioPremium = false;
+            localStorage.setItem('premium_expirado', 'true');
+            localStorage.removeItem('premium_fake');
+            location.reload();
+        };
+        
+        function atualizarPaginaSemPerderAba() {
+            const abaAtiva = document.querySelector('.container.active').id === 'cont-lotofacil' ? 'lotofacil' : 'megasena';
+            sessionStorage.setItem('abaAtiva', abaAtiva);
+            const concursoLF = document.getElementById('numLF').value;
+            const concursoMS = document.getElementById('numMS').value;
+            sessionStorage.setItem('concursoLF', concursoLF);
+            sessionStorage.setItem('concursoMS', concursoMS);
+            location.reload();
+        }
+        
+        function restaurarAbaAposRecarregar() {
+            const abaSalva = sessionStorage.getItem('abaAtiva');
+            const concursoLFSalvo = sessionStorage.getItem('concursoLF');
+            const concursoMSSalvo = sessionStorage.getItem('concursoMS');
+            if (abaSalva) {
+                switchTab(abaSalva);
+                if (abaSalva === 'lotofacil' && concursoLFSalvo) {
+                    document.getElementById('numLF').value = concursoLFSalvo;
+                } else if (abaSalva === 'megasena' && concursoMSSalvo) {
+                    document.getElementById('numMS').value = concursoMSSalvo;
+                }
+                sessionStorage.removeItem('abaAtiva');
+            }
+        }
+//💙 Não ganhou desta vez?
+//Faz parte da jornada de todo apostador. O importante é continuar sonhando e participando com responsabilidade. Que a sorte esteja ao seu lado no próximo sorteio!
+
+//"Boa sorte!✨ <br>Cada aposta carrega um sonho. Que seus números sejam sorteados e que este concurso traga uma grande conquista para você. Nunca deixe de acreditar na sua sorte!";
+
+//Prêmio estimado do concurso de N° 3710. R$ 8.000.000,00. Aviso: o sorteio será realizado dia 14/06/2026 às 11:00:00
+//Que a sorte esteja ao seu lado e que seus números tragam uma grande surpresa. Boa sorte!✨
+//Espero que esteja gostando do aplicativo. Aproveite para testá-lo bem e ver como seus jogos se comportam. Assim, você pode manter ou montar uma nova estratégia
+		
+   // =============================================
+    // CAIXA DE AVISO/MENSAGEM (CONFIGURÁVEL) 💰 🍀 📢 📣 💙 ✨ 🇧🇷 Boa sorte!
+    // =============================================
+    // Configure aqui as mensagens que deseja exibir
+
+/*
+    const MENSAGEM_AVISO_LF = "Olá! <br>Espero que esteja gostando do aplicativo. Aproveite para testá-lo bem e ver como seus jogos se comportam. Assim, você pode manter ou montar uma nova estratégia. Boa sorte!✨";
+ */
+
+	const MENSAGEM_AVISO_MS = "<br> <br> Que a sorte esteja ao seu lado e que seus números tragam uma grande surpresa.";
+    
+
+ // CAIXA DE AVISO/MENSAGEM (rolagem) <<<< -------------
+const MENSAGEM_AVISO_LF = `
+    <style>
+        .msg-scroll-container {
+            max-height: 80px;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .msg-scroll-container.expandido {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .msg-scroll-btn {
+            display: block;
+            width: 100%;
+            background: none;
+            border: none;
+            color: #9b2a92;
+            cursor: pointer;
+            text-align: center;
+            font-weight: bold;
+            padding: 5px;
+            margin-top: 5px;
+            font-size: 14px;
+        }
+        .msg-scroll-btn:hover {
+            text-decoration: underline;
+        }
+    </style>
+    <div class="msg-scroll-container" id="msgScrollLF">
+        <p>Esperamos que você esteja aproveitando o aplicativo!</p>
+        <p>Lembre-se: nenhum sistema pode prever os números que serão sorteados, pois a loteria é um jogo baseado na aleatoriedade. Nosso objetivo é ajudar você a conferir seus jogos de forma prática, acompanhar seus resultados, analisar combinações e utilizar o histórico dos concursos para criar novas estratégias.</p>
+        <p>Com essas informações, você pode ajustar suas apostas, testar novas combinações e buscar uma forma mais organizada de jogar. Isso pode ajudar na escolha das dezenas e no acompanhamento do desempenho dos seus jogos.</p>
+        <p>Use o aplicativo, experimente diferentes estratégias e divirta-se. Boa sorte e bons jogos! 🍀</p>
+    </div>
+    <button class="msg-scroll-btn" onclick="toggleMsgScroll('msgScrollLF', this)">Ver mais ▼</button>
+`;
+
+/*
+const MENSAGEM_AVISO_MS = `    
+    <div class="msg-scroll-container" id="msgScrollMS">
+        <p>Esperamos que você esteja aproveitando o aplicativo!</p>
+        <p>Lembre-se: nenhum sistema pode prever os números que serão sorteados, pois a loteria é um jogo baseado na aleatoriedade. Nosso objetivo é ajudar você a conferir seus jogos de forma prática, acompanhar seus resultados, analisar combinações e utilizar o histórico dos concursos para criar novas estratégias.</p>
+        <p>Com essas informações, você pode ajustar suas apostas, testar novas combinações e buscar uma forma mais organizada de jogar. Isso pode ajudar na escolha das dezenas e no acompanhamento do desempenho dos seus jogos.</p>
+        <p>Use o aplicativo, experimente diferentes estratégias e divirta-se. Boa sorte e bons jogos! 🍀</p>
+    </div>
+    <button class="msg-scroll-btn" onclick="toggleMsgScroll('msgScrollMS', this)">Ver mais ▼</button>
+`;
+*/
+		
+function toggleMsgScroll(id, btn) {
+    const container = document.getElementById(id);
+    if (container.classList.contains('expandido')) {
+        container.classList.remove('expandido');
+		container.scrollTop = 0; // Volta o scroll para o início
+        btn.textContent = 'Ver mais ▼';
+    } else {
+        container.classList.add('expandido');
+        btn.textContent = 'Ver menos ▲';
+    }
+}
+
+function exibirCaixaAviso(tipo) {
+    const caixaId = tipo === 'lotofacil' ? 'caixaAvisoLF' : 'caixaAvisoMS';
+    const mensagem = tipo === 'lotofacil' ? MENSAGEM_AVISO_LF : MENSAGEM_AVISO_MS;
+    const elemento = document.getElementById(caixaId);
+    if (elemento && mensagem) {
+        elemento.style.display = 'block';
+        elemento.innerHTML = `📣 ${mensagem}`;
+    }
+}
+
+
+		
+        
+        // =============================================
+        // CÓDIGO PRINCIPAL - FUNÇÕES ORIGINAIS
+        // =============================================
+        
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        
+        function dezenasParaMask(dezenas) {
+            let mask = 0n;
+            dezenas.forEach(n => { mask |= (1n << BigInt(n)); });
+            return mask;
+        }
+        
+        function conferirVeloz(maskJogo, maskSorteio) {
+            let intersec = maskJogo & maskSorteio;
+            let c = 0;
+            while (intersec > 0n) { intersec &= (intersec - 1n); c++; }
+            return c;
+        }
+        
+        function tocarAlertaElite() {
+            try {
+                const context = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = context.createOscillator();
+                const gainNode = context.createGain();
+                oscillator.type = 'triangle';
+                oscillator.frequency.setValueAtTime(880, context.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(1320, context.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.1, context.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.5);
+                oscillator.connect(gainNode);
+                gainNode.connect(context.destination);
+                oscillator.start();
+                oscillator.stop(context.currentTime + 0.5);
+            } catch (e) {}
+        }
+        
+        let abortarConsultaMassa = false;
+        
+        // =============================================
+        // IDENTIFICADOR DE JOGOS (NOVO)
+        // Cada jogo recebe uma letra fixa (A, B, C... Z, AA, AB...) na hora em que é
+        // criado. Essa letra acompanha o jogo mesmo quando a lista é reordenada após
+        // uma conferência, servindo apenas para identificação - não altera nenhuma
+        // regra de ordenação já existente.
+        // =============================================
+        function numeroParaLetras(n) {
+            let letras = '';
+            n = n + 1;
+            while (n > 0) {
+                const resto = (n - 1) % 26;
+                letras = String.fromCharCode(65 + resto) + letras;
+                n = Math.floor((n - 1) / 26);
+            }
+            return letras;
+        }
+        
+        function proximoIdentificadorLivre(usados) {
+            let n = 0, letra;
+            do {
+                letra = numeroParaLetras(n);
+                n++;
+            } while (usados.has(letra));
+            return letra;
+        }
+        
+        function gerarProximoIdentificador(tipo) {
+            const usados = new Set(dados[tipo].meusJogos.map(j => j.identificador).filter(Boolean));
+            return proximoIdentificadorLivre(usados);
+        }
+        
+        function carregarJogos(tipo) {
+            let storage = JSON.parse(localStorage.getItem(tipo === 'lotofacil' ? 'jogos_LF' : 'jogos_MS')) || [];
+            let usados = new Set();
+            const jogos = storage.map(j => {
+                let obj;
+                if (Array.isArray(j)) {
+                    obj = { numeros: j, vitorias: 0, vitorias12: 0, vitorias13: 0, vitorias11: 0, ganhoAcumulado: 0, concursosVistos: [] };
+                } else {
+                    if (!j.vitorias) j.vitorias = 0;
+                    if (!j.vitorias12) j.vitorias12 = 0;
+                    if (!j.vitorias13) j.vitorias13 = 0;
+                    if (!j.vitorias11) j.vitorias11 = 0;
+                    if (!j.ganhoAcumulado) j.ganhoAcumulado = 0;
+                    if (!j.concursosVistos) j.concursosVistos = [];
+                    obj = j;
+                }
+                return obj;
+            });
+            // Atribui identificador (Jogo A, B, C...) a jogos antigos que ainda não têm um
+            jogos.forEach(obj => {
+                if (obj.identificador) usados.add(obj.identificador);
+            });
+            jogos.forEach(obj => {
+                if (!obj.identificador) {
+                    obj.identificador = proximoIdentificadorLivre(usados);
+                    usados.add(obj.identificador);
+                }
+            });
+            return jogos;
+        }
+        
+        let dados = {
+            lotofacil: { ganhadores: [], meusJogos: carregarJogos('lotofacil'), api: 'lotofacil', min: 15, max: 20, max_bolas: 15, range: 25, custo: 3.50, concursoAtual: null },
+            megasena: { ganhadores: [], meusJogos: carregarJogos('megasena'), api: 'megasena', min: 6, max: 20, max_bolas: 6, range: 60, custo: 6.00, concursoAtual: null }
+        };
+        
+        let financeiroH = {
+            lotofacil: { investido: 0, ganho: 0, concursos_vistos: [] },
+            megasena: { investido: 0, ganho: 0, concursos_vistos: [] }
+        };
+        
+        let contagemElite = {
+            lotofacil: { c14: 0, c15: 0, lista14: [], lista15: [], concursos_processados: [] },
+            megasena: { c14: 0, c15: 0, lista14: [], lista15: [], concursos_processados: [] }
+        };
+        
+        // =============================================
+        // ESTATÍSTICAS HISTÓRICAS DOS CONCURSOS PESQUISADOS (NOVO)
+        // Guarda, por tipo, um mapa { numeroDoConcurso: [dezenas sorteadas] }
+        // referente apenas aos concursos que o usuário já pesquisou na sessão atual
+        // (via "Buscar", navegação +/- ou "Conferência em Massa").
+        // Serve apenas para análise histórica - NÃO altera a probabilidade real de acerto.
+        // =============================================
+        let contagemNumerosSorteados = {
+            lotofacil: {},
+            megasena: {}
+        };
+        
+        // =============================================
+        // FUNÇÃO PREPARAR SALVAMENTO SLOT
+        // =============================================
+        function prepararSalvamentoSlot(tipo) {
+            const temJogos = dados[tipo].meusJogos.length > 0;
+            const modal = document.getElementById('modalCustom');
+            const msgEl = document.getElementById('modalMsg');
+            const containerBotoes = document.getElementById('modalContainerBotoes');
+            
+            if (!temJogos) {
+                msgEl.innerText = "Não há jogos na tela para salvar. Deseja salvar um slot vazio?";
+                containerBotoes.innerHTML = '';
+                const btnSimVazio = document.createElement('button');
+                btnSimVazio.className = 'btn-modal btn-sim';
+                btnSimVazio.innerText = 'Salvar Slot Vazio';
+                btnSimVazio.onclick = () => {
+                    modal.style.display = 'none';
+                    exibirSelecaoSlotVazio(tipo);
+                };
+                containerBotoes.appendChild(btnSimVazio);
+                const btnNao = document.createElement('button');
+                btnNao.className = 'btn-modal btn-nao';
+                btnNao.innerText = 'Cancelar';
+                btnNao.onclick = () => {
+                    modal.style.display = 'none';
+                    restaurarBotoesModal();
+                };
+                containerBotoes.appendChild(btnNao);
+                modal.style.display = 'flex';
+                return;
+            }
+            
+            msgEl.innerText = "Em qual Slot deseja guardar?";
+            containerBotoes.innerHTML = '';
+            ['A', 'B', 'C', 'D', 'E'].forEach(slot => {
+                const btn = document.createElement('button');
+                const existeSalvo = localStorage.getItem(`slot_${tipo}_${slot}`);
+                btn.className = 'btn-modal btn-sim';
+                if (existeSalvo) {
+                    try {
+                        const dadosSlot = JSON.parse(existeSalvo);
+                        if (dadosSlot.length === 0 || (dadosSlot.length === 1 && dadosSlot[0].numeros && dadosSlot[0].numeros.length === 0)) {
+                            btn.innerText = `Grupo  ${slot} (Vazio)`;
+                            btn.style.backgroundColor = '#999';
+                        } else {
+                            btn.style.opacity = "0.6";
+                            btn.innerText = `Grupo  ${slot} (Ocupado)`;
+                        }
+                    } catch {
+                        btn.style.opacity = "0.6";
+                        btn.innerText = `Grupo  ${slot} (Ocupado)`;
+                    }
+                } else {
+                    btn.innerText = `Grupo  ${slot} (Vazio)`;
+                }
+                btn.onclick = () => {
+                    const dadosAtuais = localStorage.getItem(`slot_${tipo}_${slot}`);
+                    if (!dadosAtuais) {
+                        executarSalvarSlot(tipo, slot);
+                        modal.style.display = 'none';
+                    } else {
+                        try {
+                            const dadosSlot = JSON.parse(dadosAtuais);
+                            if (dadosSlot.length === 0 || (dadosSlot.length === 1 && dadosSlot[0].numeros && dadosSlot[0].numeros.length === 0)) {
+                                executarSalvarSlot(tipo, slot);
+                                modal.style.display = 'none';
+                            } else {
+                                modal.style.display = 'none';
+                                exibirModal(`O Slot ${slot} já tem jogos salvos. Tem certeza que deseja APAGAR os antigos e salvar a lista atual?`, () => {
+                                    executarSalvarSlot(tipo, slot);
+                                }, false);
+                            }
+                        } catch {
+                            modal.style.display = 'none';
+                            exibirModal(`O Slot ${slot} já tem jogos salvos. Tem certeza que deseja APAGAR os antigos e salvar a lista atual?`, () => {
+                                executarSalvarSlot(tipo, slot);
+                            }, false);
+                        }
+                    }
+                };
+                containerBotoes.appendChild(btn);
+            });
+            const btnCanc = document.createElement('button');
+            btnCanc.className = 'btn-modal btn-nao';
+            btnCanc.innerText = 'Cancelar';
+            btnCanc.onclick = () => {
+                restaurarBotoesModal();
+                modal.style.display = 'none';
+            };
+            containerBotoes.appendChild(btnCanc);
+            modal.style.display = 'flex';
+        }
+        
+        function exibirSelecaoSlotVazio(tipo) {
+            const modal = document.getElementById('modalCustom');
+            const msgEl = document.getElementById('modalMsg');
+            const containerBotoes = document.getElementById('modalContainerBotoes');
+            msgEl.innerText = "Selecione um slot para salvar como vazio:";
+            containerBotoes.innerHTML = '';
+            ['A', 'B', 'C', 'D', 'E'].forEach(slot => {
+                const btn = document.createElement('button');
+                const existeSalvo = localStorage.getItem(`slot_${tipo}_${slot}`);
+                btn.className = 'btn-modal btn-sim';
+                if (existeSalvo) {
+                    try {
+                        const dadosSlot = JSON.parse(existeSalvo);
+                        if (dadosSlot.length === 0 || (dadosSlot.length === 1 && dadosSlot[0].numeros && dadosSlot[0].numeros.length === 0)) {
+                            btn.innerText = `Grupo  ${slot} (Vazio)`;
+                            btn.style.backgroundColor = '#999';
+                        } else {
+                            btn.style.opacity = "0.6";
+                            btn.innerText = `Grupo  ${slot} (Ocupado)`;
+                        }
+                    } catch {
+                        btn.style.opacity = "0.6";
+                        btn.innerText = `Grupo  ${slot} (Ocupado)`;
+                    }
+                } else {
+                    btn.innerText = `Grupo  ${slot} (Vazio)`;
+                }
+                btn.onclick = () => {
+                    const dadosAtuais = localStorage.getItem(`slot_${tipo}_${slot}`);
+                    if (!dadosAtuais) {
+                        salvarSlotVazio(tipo, slot);
+                        modal.style.display = 'none';
+                    } else {
+                        try {
+                            const dadosSlot = JSON.parse(dadosAtuais);
+                            if (dadosSlot.length === 0 || (dadosSlot.length === 1 && dadosSlot[0].numeros && dadosSlot[0].numeros.length === 0)) {
+                                salvarSlotVazio(tipo, slot);
+                                modal.style.display = 'none';
+                            } else {
+                                modal.style.display = 'none';
+                                exibirModal(`O Slot ${slot} já tem jogos salvos. Tem certeza que deseja APAGAR os antigos e salvar a lista atual?`, () => {
+                                    salvarSlotVazio(tipo, slot);
+                                }, false);
+                            }
+                        } catch {
+                            modal.style.display = 'none';
+                            exibirModal(`O Slot ${slot} já tem jogos salvos. Tem certeza que deseja APAGAR os antigos e salvar a lista atual?`, () => {
+                                salvarSlotVazio(tipo, slot);
+                            }, false);
+                        }
+                    }
+                };
+                containerBotoes.appendChild(btn);
+            });
+            const btnCanc = document.createElement('button');
+            btnCanc.className = 'btn-modal btn-nao';
+            btnCanc.innerText = 'Cancelar';
+            btnCanc.onclick = () => {
+                restaurarBotoesModal();
+                modal.style.display = 'none';
+            };
+            containerBotoes.appendChild(btnCanc);
+            modal.style.display = 'flex';
+        }
+        
+        function salvarSlotVazio(tipo, slot) {
+            localStorage.setItem(`slot_${tipo}_${slot}`, JSON.stringify([]));
+            exibirModal(`Slot ${slot} salvo como vazio!`, null, true);
+            atualizarBotoesSlot(tipo);
+        }
+        
+        function executarSalvarSlot(tipo, slot) {
+            const jogosParaSalvar = dados[tipo].meusJogos.map(j => ({
+                ...j,
+                vitorias: 0,
+                vitorias12: 0,
+                vitorias13: 0,
+                vitorias11: 0,
+                ganhoAcumulado: 0,
+                concursosVistos: []
+            }));
+            localStorage.setItem(`slot_${tipo}_${slot}`, JSON.stringify(jogosParaSalvar));
+            exibirModal(`Jogos guardados com sucesso no Slot ${slot}!`, null, true);
+            atualizarBotoesSlot(tipo);
+        }
+        
+        function atualizarBotoesSlot(tipo) {
+            const prefixo = tipo === 'lotofacil' ? 'lf' : 'ms';
+            ['A', 'B', 'C', 'D', 'E'].forEach(slot => {
+                const btn = document.querySelector(`.btn-memoria-${prefixo}-${slot}`);
+                if (btn) {
+                    const salvo = localStorage.getItem(`slot_${tipo}_${slot}`);
+                    if (salvo) {
+                        try {
+                            const dadosSlot = JSON.parse(salvo);
+                            if (dadosSlot.length === 0 || (dadosSlot.length === 1 && dadosSlot[0].numeros && dadosSlot[0].numeros.length === 0)) {
+                                btn.classList.add('slot-vazio');
+                                btn.innerText = `Slot ${slot} (Vazio)`;
+                            } else {
+                                btn.classList.remove('slot-vazio');
+                                btn.innerText = `Grupo ${slot}`;
+                            }
+                        } catch {
+                            btn.classList.remove('slot-vazio');
+                            btn.innerText = `Grupo ${slot}`;
+                        }
+                    } else {
+                        btn.classList.remove('slot-vazio');
+                        btn.innerText = `Grupo ${slot}`;
+                    }
+                }
+            });
+        }
+        
+        function restaurarBotoesModal() {
+            document.getElementById('modalContainerBotoes').innerHTML = `
+                <button id="btnSim" class="btn-modal btn-sim">Confirmar</button>
+                <button id="btnNao" class="btn-modal btn-nao">Cancelar</button>
+            `;
+        }
+        
+        function carregarSlot(tipo, slot) {
+            const salvo = localStorage.getItem(`slot_${tipo}_${slot}`);
+            if (salvo) {
+                try {
+                    const dadosSlot = JSON.parse(salvo);
+                    if (dadosSlot.length === 0 || (dadosSlot.length === 1 && dadosSlot[0].numeros && dadosSlot[0].numeros.length === 0)) {
+                        exibirModal(`O Grupo ${slot} está vazio.`, null, true);
+                        return;
+                    }
+                    financeiroH[tipo] = { investido: 0, ganho: 0, concursos_vistos: [] };
+                    contagemElite[tipo] = { c14: 0, c15: 0, lista14: [], lista15: [], concursos_processados: [] };
+                    let usadosSlot = new Set(dadosSlot.map(j => j.identificador).filter(Boolean));
+                    dadosSlot.forEach(j => {
+                        if (!j.identificador) {
+                            j.identificador = proximoIdentificadorLivre(usadosSlot);
+                            usadosSlot.add(j.identificador);
+                        }
+                    });
+                    dados[tipo].meusJogos = dadosSlot;
+                    salvarNoLocalStorage(tipo);
+                    renderizar(tipo);
+                    const prefixo = tipo === 'lotofacil' ? 'lf' : 'ms';
+                    document.querySelectorAll(`.btn-memoria`).forEach(btn => {
+                        if(btn.className.includes(`btn-memoria-${prefixo}`)) btn.classList.remove('slot-active');
+                    });
+                    const btnSel = document.querySelector(`.btn-memoria-${prefixo}-${slot}`);
+                    if(btnSel) btnSel.classList.add('slot-active');
+                    exibirModal(`Grupo ${slot} carregado para conferência!`, null, true);
+                } catch (e) {
+                    exibirModal(`Erro ao carregar o Grupo ${slot}.`, null, true);
+                }
+            } else {
+                exibirModal(`O Grupo ${slot} está vazio.`, null, true);
+            }
+        }
+        
+        function exibirModal(msg, callback, apenasAviso = false) {
+            restaurarBotoesModal();
+            const modal = document.getElementById('modalCustom');
+            const msgEl = document.getElementById('modalMsg');
+            const btnSim = document.getElementById('btnSim');
+            const btnNao = document.getElementById('btnNao');
+            msgEl.innerText = msg;
+            modal.style.display = 'flex';
+            btnNao.style.display = apenasAviso ? 'none' : 'block';
+            btnSim.innerText = apenasAviso ? 'OK' : 'Confirmar';
+            btnSim.onclick = () => {
+                modal.style.display = 'none';
+                if (callback) callback();
+            };
+            btnNao.onclick = () => {
+                modal.style.display = 'none';
+            };
+        }
+        
+        function switchTab(tipo) {
+            document.querySelectorAll('.container, .btn-aba').forEach(el => el.classList.remove('active'));
+            document.getElementById(`cont-${tipo}`).classList.add('active');
+            document.querySelector(`.aba-${tipo}`).classList.add('active');
+            document.body.className = `${tipo === 'lotofacil' ? 'lf' : 'ms'}-theme`;
+        }
+        
+        async function buscar(tipo, concurso = 'latest') {
+            const idInfo = tipo === 'lotofacil' ? 'infoLF' : 'infoMS';
+            const idInput = tipo === 'lotofacil' ? 'numLF' : 'numMS';
+            const idBolas = tipo === 'lotofacil' ? 'bolasLF' : 'bolasMS';
+            const bolasEl = document.getElementById(idBolas);
+            const termo = (concurso === '' || concurso === null) ? 'latest' : concurso;
+            
+            const concursoManual = RESULTADO_MANUAL[tipo].concurso;
+            if (termo === 'latest' || parseInt(termo) > concursoManual) {
+                const ultimoConcursoAPI = await buscarUltimoConcursoAPI(tipo);
+                if (!ultimoConcursoAPI || ultimoConcursoAPI < concursoManual) {
+                    console.log(`API retornou concurso ${ultimoConcursoAPI}, usando manual ${concursoManual}`);
+                    carregarResultadoManual(tipo);
+                    return concursoManual;
+                }
+            } else if (parseInt(termo) === concursoManual) {
+                console.log(`Concurso solicitado ${termo} é o manual configurado`);
+                carregarResultadoManual(tipo);
+                return concursoManual;
+            }
+            
+            const apis = [
+                `https://loteriascaixa-api.herokuapp.com/api/${dados[tipo].api}/${termo}`,
+                `https://api-loteria.vercel.app/api/${dados[tipo].api}/${termo}`
+            ];
+            
+            let data = null;
+            
+            for (let apiUrl of apis) {
+                try {
+                    console.log(`Tentando API: ${apiUrl}`);
+                    const response = await fetch(apiUrl, { timeout: 10000 });
+                    if (!response.ok) throw new Error(`API ${apiUrl} falhou com status ${response.status}`);
+                    data = await response.json();
+                    console.log(`Sucesso com API: ${apiUrl}`);
+                    break;
+                } catch (error) {
+                    console.warn(`Falha com API ${apiUrl}:`, error);
+                    continue;
+                }
+            }
+            
+            if (data) {
+                dados[tipo].concursoAtual = data.concurso || data.numero_concurso || data.numero;
+                document.getElementById(idInput).value = dados[tipo].concursoAtual;
+                
+                let dezenas = [];
+                if (data.dezenas) dezenas = data.dezenas.map(Number);
+                else if (data.numeros) dezenas = data.numeros.map(Number);
+                else if (data.numeros_sorteados) dezenas = data.numeros_sorteados.map(Number);
+                
+                dados[tipo].ganhadores = dezenas;
+                
+                let valorAcumulado = null;
+                if (data.acumuladaProxConcurso || data.valorAcumuladoProxConcurso) {
+                    valorAcumulado = data.acumuladaProxConcurso || data.valorAcumuladoProxConcurso;
+                    if (typeof valorAcumulado === 'number') {
+                        valorAcumulado = valorAcumulado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                    }
+                } else if (data.valor_acumulado) {
+                    valorAcumulado = data.valor_acumulado;
+                }
+                
+                if (valorAcumulado) atualizarValorAcumulado(tipo, valorAcumulado);
+                else if (data.premiacao && data.premiacao.acumulada) atualizarValorAcumulado(tipo, data.premiacao.acumulada);
+                
+                const dataFormatada = data.data ? data.data : (data.data_sorteio ? data.data_sorteio : 'Data não disponível');
+                document.getElementById(idInfo).innerHTML = `Concurso ${dados[tipo].concursoAtual} - Data: ${dataFormatada}`;
+                
+                bolasEl.innerHTML = '';
+                dezenas.forEach(num => { bolasEl.innerHTML += `<div class="bola">${num}</div>`; });
+                renderizar(tipo);
+                return dados[tipo].concursoAtual;
+            } else {
+                console.log('Todas as APIs falharam, tentando resultado manual...');
+                if (carregarResultadoManual(tipo)) return RESULTADO_MANUAL[tipo].concurso;
+                
+                document.getElementById(idInfo).innerHTML = `<span style="color:#d93025">⚠️ CONCURSO NÃO ENCONTRADO OU NÃO SORTEADO</span>`;
+                bolasEl.innerHTML = '';
+                for(let i=0; i < dados[tipo].max_bolas; i++) bolasEl.innerHTML += `<div class="bola" style="background:#ccc; color:#666">- -</div>`;
+                dados[tipo].ganhadores = [];
+                renderizar(tipo);
+                return null;
+            }
+        }
+        
+        async function buscarUltimoConcursoAPI(tipo) {
+            try {
+                const response = await fetch(`https://loteriascaixa-api.herokuapp.com/api/${dados[tipo].api}/latest`);
+                if (!response.ok) return null;
+                const data = await response.json();
+                return data.concurso || data.numero_concurso || data.numero;
+            } catch {
+                return null;
+            }
+        }
+        
+        function limparEstatisticasJogos(tipo) {
+            dados[tipo].meusJogos = dados[tipo].meusJogos.map(j => {
+                return {
+                    ...j,
+                    vitorias: 0,
+                    vitorias12: 0,
+                    vitorias13: 0,
+                    vitorias11: 0,
+                    ganhoAcumulado: 0,
+                    concursosVistos: []
+                };
+            });
+            salvarNoLocalStorage(tipo);
+        }
+        
+        async function conferirMassa(tipo) {
+            const inputMassa = document.getElementById(`massa_${tipo}`);
+            const btnMassa = document.getElementById(`btnMassa_${tipo}`);
+            const progContainer = document.getElementById(`progContainer_${tipo}`);
+            const progBar = document.getElementById(`progBar_${tipo}`);
+            if (btnMassa.dataset.status === "rodando") {
+                abortarConsultaMassa = true;
+                return;
+            }
+            let inicio = parseInt(inputMassa.value);
+            if (isNaN(inicio) || inicio <= 0) {
+                exibirModal("Digite um concurso inicial válido.", null, true);
+                return;
+            }
+            const originalText = "🔍 Conferir até o Fim";
+            try {
+                const ultimoConcursoData = await buscar(tipo, 'latest');
+                const fim = dados[tipo].concursoAtual;
+                if (inicio > fim) {
+                    exibirModal("Concurso inicial maior que o atual.", null, true);
+                    return;
+                }
+                const total = fim - inicio + 1;
+                const iniciarLoop = async () => {
+                    abortarConsultaMassa = false;
+                    btnMassa.dataset.status = "rodando";
+                    btnMassa.style.backgroundColor = "#ff4444";
+                    progContainer.style.display = 'block';
+                    progBar.style.width = '0%';
+                    zerarFinanceiro(tipo);
+                    contagemElite[tipo] = { c14: 0, c15: 0, lista14: [], lista15: [], concursos_processados: [] };
+                    limparEstatisticasJogos(tipo);
+                    for (let c = inicio; c <= fim; c++) {
+                        if (abortarConsultaMassa) break;
+                        const percent = (((c - inicio + 1) / total) * 100).toFixed(0);
+                        progBar.style.width = percent + '%';
+                        btnMassa.innerText = `Parar - ⏳ Processando... (${percent}%)`;
+                        await buscar(tipo, c);
+                    }
+                    btnMassa.dataset.status = "parado";
+                    btnMassa.innerText = originalText;
+                    btnMassa.style.backgroundColor = "#f39c12";
+                    if (abortarConsultaMassa) {
+                        exibirModal("Consulta interrompida pelo usuário.", null, true);
+                    } else {
+                        exibirModal(`Conferência finalizada do ${inicio} ao ${fim}!`, null, true);
+                    }
+                    setTimeout(() => { progContainer.style.display = 'none'; }, 2000);
+                };
+                if (total > 300) {
+                    exibirModal(`Você está prestes a consultar ${total} concursos. Deseja continuar?`, iniciarLoop);
+                } else {
+                    iniciarLoop();
+                }
+            } catch (err) {
+                exibirModal("Erro na conferência em massa.", null, true);
+                btnMassa.dataset.status = "parado";
+                btnMassa.innerText = originalText;
+                btnMassa.style.backgroundColor = "#f39c12";
+            }
+        }
+        
+        function navegarConcurso(tipo, direcao) {
+            const id = tipo === 'lotofacil' ? 'numLF' : 'numMS';
+            let val = parseInt(document.getElementById(id).value);
+            if(!isNaN(val)) buscar(tipo, val + direcao);
+        }
+        
+        function abrirModalOpcoesSurpresinha(tipo) {
+            const modal = document.getElementById('modalCustom');
+            const msgEl = document.getElementById('modalMsg');
+            const containerBotoes = document.getElementById('modalContainerBotoes');
+            msgEl.innerText = "Escolha a quantidade de surpresinhas:";
+            containerBotoes.innerHTML = '';
+            const opcoes = [1, 2, 4, 8, 10];
+            opcoes.forEach(qtd => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-modal btn-sim';
+                btn.innerText = qtd + (qtd === 1 ? ' Jogo' : ' Jogos');
+                btn.style.minWidth = '70px';
+                btn.onclick = () => {
+                    modal.style.display = 'none';
+                    gerarMultiplasSurpresinhas(tipo, qtd);
+                };
+                containerBotoes.appendChild(btn);
+            });
+            const btnCanc = document.createElement('button');
+            btnCanc.className = 'btn-modal btn-nao';
+            btnCanc.innerText = 'Cancelar';
+            btnCanc.onclick = () => {
+                modal.style.display = 'none';
+                restaurarBotoesModal();
+            };
+            containerBotoes.appendChild(btnCanc);
+            modal.style.display = 'flex';
+        }
+        
+        function gerarMultiplasSurpresinhas(tipo, quantidade) {
+            for (let i = 0; i < quantidade; i++) gerarSurpresinha(tipo);
+            exibirModal(`${quantidade} surpresinha(s) gerada(s) com sucesso!`, null, true);
+        }
+        
+        function gerarSurpresinha(tipo) {
+            let numeros = [];
+            while(numeros.length < dados[tipo].min) {
+                let n = Math.floor(Math.random() * dados[tipo].range) + 1;
+                if(!numeros.includes(n)) numeros.push(n);
+            }
+            numeros.sort((a,b) => a - b);
+            dados[tipo].meusJogos.push({
+                numeros: numeros,
+                vitorias: 0,
+                vitorias12: 0,
+                vitorias13: 0,
+                vitorias11: 0,
+                ganhoAcumulado: 0,
+                concursosVistos: [],
+                identificador: gerarProximoIdentificador(tipo)
+            });
+            salvarNoLocalStorage(tipo);
+            renderizar(tipo);
+        }
+        
+        let numerosSelecionados = [];
+        let tipoSelecaoAtual = '';
+        
+        function abrirSelecionadorNumeros(tipo) {
+            tipoSelecaoAtual = tipo;
+            numerosSelecionados = [];
+            const modal = document.getElementById('modalNumeros');
+            const grid = document.getElementById('numerosGrid');
+            const contador = document.getElementById('contadorSelecionados');
+            const titulo = modal.querySelector('h3');
+            titulo.style.color = tipo === 'lotofacil' ? 'var(--cor-lotofacil)' : 'var(--cor-megasena)';
+            titulo.innerText = `Selecione os Números (${tipo === 'lotofacil' ? '15-20 números' : '6-20 números'})`;
+            const min = dados[tipo].min;
+            const max = dados[tipo].max;
+            contador.innerText = `Selecionados: 0/${min}-${max}`;
+            contador.style.color = '#333';
+            grid.innerHTML = '';
+            const range = dados[tipo].range;
+            for (let i = 1; i <= range; i++) {
+                const numItem = document.createElement('div');
+                numItem.className = 'numero-item';
+                numItem.innerText = i.toString().padStart(2, '0');
+                numItem.dataset.numero = i;
+                numItem.onclick = () => { toggleNumeroSelecionado(i, numItem); };
+                grid.appendChild(numItem);
+            }
+            const btnConfirmar = modal.querySelector('.btn-confirmar-numeros');
+            btnConfirmar.style.backgroundColor = tipo === 'lotofacil' ? 'var(--cor-lotofacil)' : 'var(--cor-megasena)';
+            btnConfirmar.disabled = true;
+            modal.style.display = 'flex';
+        }
+        
+        function toggleNumeroSelecionado(numero, elemento) {
+            const index = numerosSelecionados.indexOf(numero);
+            const min = dados[tipoSelecaoAtual].min;
+            const max = dados[tipoSelecaoAtual].max;
+            if (index === -1) {
+                if (numerosSelecionados.length >= max) {
+                    exibirModal(`Máximo de ${max} números permitidos!`, null, true);
+                    return;
+                }
+                numerosSelecionados.push(numero);
+                elemento.classList.add('selecionado');
+            } else {
+                numerosSelecionados.splice(index, 1);
+                elemento.classList.remove('selecionado');
+            }
+            const contador = document.getElementById('contadorSelecionados');
+            const selecionados = numerosSelecionados.length;
+            contador.innerText = `Selecionados: ${selecionados}/${min}-${max}`;
+            if (selecionados < min) contador.style.color = '#e74c3c';
+            else if (selecionados >= min && selecionados <= max) contador.style.color = '#27ae60';
+            else contador.style.color = '#e74c3c';
+            const btnConfirmar = document.querySelector('.btn-confirmar-numeros');
+            btnConfirmar.disabled = selecionados < min || selecionados > max;
+        }
+        
+        function limparSelecaoNumeros() {
+            numerosSelecionados = [];
+            const elementos = document.querySelectorAll('.numero-item');
+            elementos.forEach(el => el.classList.remove('selecionado'));
+            const min = dados[tipoSelecaoAtual].min;
+            const max = dados[tipoSelecaoAtual].max;
+            const contador = document.getElementById('contadorSelecionados');
+            contador.innerText = `Selecionados: 0/${min}-${max}`;
+            contador.style.color = '#333';
+            const btnConfirmar = document.querySelector('.btn-confirmar-numeros');
+            btnConfirmar.disabled = true;
+        }
+        
+        function fecharModalNumeros() {
+            document.getElementById('modalNumeros').style.display = 'none';
+            numerosSelecionados = [];
+        }
+        
+        function confirmarSelecaoNumeros() {
+            if (numerosSelecionados.length < dados[tipoSelecaoAtual].min || 
+                numerosSelecionados.length > dados[tipoSelecaoAtual].max) {
+                exibirModal(`Selecione entre ${dados[tipoSelecaoAtual].min} e ${dados[tipoSelecaoAtual].max} números.`, null, true);
+                return;
+            }
+            const numerosOrdenados = [...numerosSelecionados].sort((a, b) => a - b);
+            dados[tipoSelecaoAtual].meusJogos.push({
+                numeros: numerosOrdenados,
+                vitorias: 0,
+                vitorias12: 0,
+                vitorias13: 0,
+                vitorias11: 0,
+                ganhoAcumulado: 0,
+                concursosVistos: [],
+                identificador: gerarProximoIdentificador(tipoSelecaoAtual)
+            });
+            salvarNoLocalStorage(tipoSelecaoAtual);
+            renderizar(tipoSelecaoAtual);
+            fecharModalNumeros();
+            exibirModal(`Jogo com ${numerosOrdenados.length} números adicionado com sucesso!`, null, true);
+        }
+        
+        function adicionarJogo(tipo) {
+            const input = document.getElementById(tipo === 'lotofacil' ? 'inputLF' : 'inputMS');
+            let nums = input.value.split(/[\s,]+/).filter(n => n !== "").map(Number);
+            const limiteMaximo = dados[tipo].range;
+            if (nums.filter(n => n < 1 || n > limiteMaximo).length > 0) {
+                exibirModal(`⚠️ Números fora do intervalo (01 a ${limiteMaximo})`, null, true);
+                return;
+            }
+            let unicos = [...new Set(nums)];
+            if (unicos.length !== nums.length) {
+                exibirModal("⚠️ Números repetidos detectados!", null, true);
+                return;
+            }
+            if (unicos.length < dados[tipo].min || unicos.length > dados[tipo].max) {
+                exibirModal(`Digite entre ${dados[tipo].min} e ${dados[tipo].max} números.`, null, true);
+                return;
+            }
+            unicos.sort((a,b) => a-b);
+            dados[tipo].meusJogos.push({
+                numeros: unicos,
+                vitorias: 0,
+                vitorias12: 0,
+                vitorias13: 0,
+                vitorias11: 0,
+                ganhoAcumulado: 0,
+                concursosVistos: [],
+                identificador: gerarProximoIdentificador(tipo)
+            });
+            salvarNoLocalStorage(tipo);
+            input.value = '';
+            renderizar(tipo);
+        }
+        
+        function salvarNoLocalStorage(tipo) {
+            localStorage.setItem(tipo === 'lotofacil' ? 'jogos_LF' : 'jogos_MS', JSON.stringify(dados[tipo].meusJogos));
+        }
+        
+        function confirmarRemover(tipo, index) {
+            exibirModal("Deseja excluir este jogo?", () => {
+                dados[tipo].meusJogos.splice(index, 1);
+                salvarNoLocalStorage(tipo);
+                renderizar(tipo);
+            });
+        }
+        
+        function confirmarLimpar(tipo) {
+            exibirModal(`Deseja apagar todos os jogos de ${tipo}?`, () => {
+                dados[tipo].meusJogos = [];
+                localStorage.removeItem(tipo === 'lotofacil' ? 'jogos_LF' : 'jogos_MS');
+                financeiroH[tipo] = { investido: 0, ganho: 0, concursos_vistos: [] };
+                contagemElite[tipo] = { c14: 0, c15: 0, lista14: [], lista15: [], concursos_processados: [] };
+                renderizar(tipo);
+            });
+        }
+        
+        function calcularPercentual(saldo, totalGasto) {
+            if (totalGasto === 0) return 0;
+            return (saldo / totalGasto) * 100;
+        }
+        
+        function formatarPercentual(valor) {
+            return Math.abs(valor).toFixed(2).replace('.', ',') + '%';
+        }
+        
+        function atualizarPercentual(tipo) {
+            const sufixo = tipo === 'lotofacil' ? 'LF' : 'MS';
+            const valInvestidoElement = document.getElementById(`valInvestido${sufixo}`);
+            const valGanhoElement = document.getElementById(`valGanho${sufixo}`);
+            const percentualElement = document.getElementById(`percentual${sufixo}`);
+            const saldoElement = document.getElementById(`status${sufixo}`);
+            if (!percentualElement) return;
+            const totalGasto = parseFloat(valInvestidoElement.innerText.replace('R$', '').replace(/\./g, '').replace(',', '.').trim());
+            const totalGanho = parseFloat(valGanhoElement.innerText.replace('R$', '').replace(/\./g, '').replace(',', '.').trim());
+            const saldo = totalGanho - totalGasto;
+            const saldoTexto = saldo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            const saldoNode = saldoElement.childNodes[0];
+            if (saldoNode) saldoNode.nodeValue = `Saldo: ${saldoTexto} `;
+            const percentual = calcularPercentual(saldo, totalGasto);
+            percentualElement.className = 'percentual-status';
+            if (percentual > 0) {
+                percentualElement.classList.add('positivo');
+                percentualElement.innerText = formatarPercentual(percentual);
+            } else if (percentual < 0) {
+                percentualElement.classList.add('negativo');
+                percentualElement.innerText = formatarPercentual(percentual);
+            } else {
+                percentualElement.classList.add('zero');
+                percentualElement.innerText = '0,00%';
+            }
+        }
+        
+        function renderizar(tipo) {
+            // Registra as dezenas do concurso atual para as estatísticas históricas
+            // (frequência, atraso, pares/ímpares, co-ocorrência). Não afeta a probabilidade real.
+            if (dados[tipo].concursoAtual && dados[tipo].ganhadores && dados[tipo].ganhadores.length > 0) {
+                contagemNumerosSorteados[tipo][dados[tipo].concursoAtual] = [...dados[tipo].ganhadores];
+            }
+            atualizarPainelEstatisticas(tipo);
+            
+            const lista = document.getElementById(tipo === 'lotofacil' ? 'listaLF' : 'listaMS');
+            const resumo = document.getElementById(tipo === 'lotofacil' ? 'resumoLF' : 'resumoMS');
+            const classeAcerto = tipo === 'lotofacil' ? 'num-acertado-lf' : 'num-acertado-ms';
+            if (dados[tipo].meusJogos.length === 0) {
+                lista.innerHTML = '<h3>Meus Jogos Salvos:</h3>';
+                resumo.innerHTML = "Nenhum jogo salvo.";
+                atualizarPainelFinanceiro(tipo);
+                atualizarPainelElite(tipo);
+                atualizarPercentual(tipo);
+                return;
+            }
+            const concursoAtual = dados[tipo].concursoAtual;
+            const maskSorteio = dezenasParaMask(dados[tipo].ganhadores);
+            let totalInvestidoConcurso = dados[tipo].meusJogos.length * dados[tipo].custo;
+            let totalGanhoConcurso = 0;
+            let totalPremiados = 0;
+            let stats = {};
+            let acertoElite14 = false;
+            let acertoElite15 = false;
+            dados[tipo].meusJogos.forEach(jogo => {
+                const maskJogo = dezenasParaMask(jogo.numeros);
+                const acertos = conferirVeloz(maskJogo, maskSorteio);
+                const minimoParaGanhar = (tipo === 'lotofacil' ? 11 : 4);
+                const ganhou = acertos >= minimoParaGanhar && dados[tipo].ganhadores.length > 0;
+                if (dados[tipo].ganhadores.length > 0) {
+                    if (tipo === 'lotofacil') {
+                        if (acertos === 14) acertoElite14 = true;
+                        if (acertos === 15) acertoElite15 = true;
+                    } else {
+                        if (acertos === 5) acertoElite14 = true;
+                        if (acertos === 6) acertoElite15 = true;
+                    }
+                }
+                let valorGanhoNeste = 0;
+                if(ganhou && tipo === 'lotofacil') {
+                    if(acertos === 11) valorGanhoNeste = 7.00;
+                    if(acertos === 12) valorGanhoNeste = 14.00;
+                    if(acertos === 13) valorGanhoNeste = 35.00;
+                }
+                if (ganhou) {
+                    if (concursoAtual && !jogo.concursosVistos.includes(concursoAtual)) {
+                        jogo.vitorias = (jogo.vitorias || 0) + 1;
+                        if(tipo === 'lotofacil' && acertos === 11) jogo.vitorias11 = (jogo.vitorias11 || 0) + 1;
+                        if(tipo === 'lotofacil' && acertos === 12) jogo.vitorias12 = (jogo.vitorias12 || 0) + 1;
+                        if(tipo === 'lotofacil' && acertos === 13) jogo.vitorias13 = (jogo.vitorias13 || 0) + 1;
+                        jogo.ganhoAcumulado = (jogo.ganhoAcumulado || 0) + valorGanhoNeste;
+                        jogo.concursosVistos.push(concursoAtual);
+                    }
+                    totalPremiados++;
+                    stats[acertos] = (stats[acertos] || 0) + 1;
+                    totalGanhoConcurso += valorGanhoNeste;
+                }
+                jogo.ultimoAcertoTemp = acertos;
+            });
+            if (concursoAtual && !contagemElite[tipo].concursos_processados.includes(concursoAtual) && dados[tipo].ganhadores.length > 0) {
+                if (acertoElite14) {
+                    contagemElite[tipo].c14++;
+                    contagemElite[tipo].lista14.push(concursoAtual);
+                    tocarAlertaElite();
+                }
+                if (acertoElite15) {
+                    contagemElite[tipo].c15++;
+                    contagemElite[tipo].lista15.push(concursoAtual);
+                    tocarAlertaElite();
+                }
+                contagemElite[tipo].concursos_processados.push(concursoAtual);
+            }
+            processarAcumulo(tipo, totalInvestidoConcurso, totalGanhoConcurso);
+            salvarNoLocalStorage(tipo);
+            dados[tipo].meusJogos.sort((a, b) => (b.ganhoAcumulado || 0) - (a.ganhoAcumulado || 0) || (b.vitorias || 0) - (a.vitorias || 0));
+            lista.innerHTML = '<h3>Meus Jogos Salvos:</h3>';
+            dados[tipo].meusJogos.forEach((jogo, idx) => {
+                const acertos = jogo.ultimoAcertoTemp;
+                const ganhou = acertos >= (tipo === 'lotofacil' ? 11 : 4) && dados[tipo].ganhadores.length > 0;
+                const htmlJogo = jogo.numeros.map(n => (dados[tipo].ganhadores.includes(n)) ? `<span class="${classeAcerto}">${n.toString().padStart(2, '0')}</span>` : n.toString().padStart(2, '0')).join(' ');
+                lista.innerHTML += `
+                    <div class="card-jogo ${ganhou ? 'premiado' : ''}">
+                        <span class="badge-identificador">Jogo ${jogo.identificador || '?'}</span>
+                        <button class="remove-btn" onclick="confirmarRemover('${tipo}', ${idx})">X</button>
+                        <div style="font-family: monospace; font-size: 1.1em; margin-bottom:5px; margin-top:6px;">${htmlJogo}</div>
+                        <small><b>${acertos} ACERTOS</b></small>
+                        ${jogo.vitorias > 0 ? `<span class="badge-vitorias">🏆 ${jogo.vitorias}x Premiado</span>` : ''}
+                        ${tipo === 'lotofacil' && jogo.vitorias11 > 0 ? `<span class="badge-onze">⭐ 11 pts: ${jogo.vitorias11}x</span>` : ''}
+                        ${tipo === 'lotofacil' && jogo.vitorias12 > 0 ? `<span class="badge-doze">✨ 12 pts: ${jogo.vitorias12}x</span>` : ''}
+                        ${tipo === 'lotofacil' && jogo.vitorias13 > 0 ? `<span class="badge-treze">🔥 13 pts: ${jogo.vitorias13}x</span>` : ''}
+                        ${jogo.ganhoAcumulado > 0 ? `<span class="badge-dinheiro">💰 Total: R$ ${jogo.ganhoAcumulado.toFixed(2)}</span>` : ''}
+                        ${jogo.geradoPorSubstituicao && jogo.origemIdentificador && jogo.origemIdentificador !== '?' ? `<br><span class="badge-origem-substituicao">🔄 Gerado do Jogo ${jogo.origemIdentificador} (substituiu ${jogo.substituicoesQuantidade || '?'} nº)</span>` : ''}
+                        <br><button class="btn-ver-contagem" onclick="abrirModalContagemJogo('${tipo}', ${idx})">📊 Ver contagem</button>
+                    </div>`;
+            });
+            if (dados[tipo].ganhadores.length > 0) {
+                if (totalPremiados > 0) {
+                    let resumoHtml = `<strong>🎉 PARABÉNS! ${totalPremiados} jogo(s) premiado(s)!</strong><br>`;
+                    [15,14,13,12,11,6,5,4].forEach(f => {
+                        if (stats[f]) resumoHtml += `<div class="caixa-acerto">${stats[f]} jogo(s) de <b>${f} acertos</b></div><br>`;
+                    });
+                    resumo.innerHTML = resumoHtml;
+                } else resumo.innerHTML = "Nenhum jogo premiado neste concurso.";
+            } else resumo.innerHTML = "Aguardando resultado...";
+            atualizarPainelFinanceiro(tipo);
+            atualizarPainelElite(tipo);
+        }
+        
+        function atualizarPainelElite(tipo) {
+            const sufixo = tipo === 'lotofacil' ? 'LF' : 'MS';
+            const label14 = tipo === 'lotofacil' ? '14 Acertos' : 'Quina';
+            const label15 = tipo === 'lotofacil' ? '15 Acertos' : 'Sena';
+            const l14 = contagemElite[tipo].lista14.length > 0 ? " - " + contagemElite[tipo].lista14.join(", ") : "";
+            const l15 = contagemElite[tipo].lista15.length > 0 ? " - " + contagemElite[tipo].lista15.join(", ") : "";
+            document.getElementById(`count14${sufixo}`).innerHTML = `${label14}: <b>${contagemElite[tipo].c14}x</b> <small style="color:#666">${l14}</small>`;
+            document.getElementById(`count15${sufixo}`).innerHTML = `${label15}: <b>${contagemElite[tipo].c15}x</b> <small style="color:#666">${l15}</small>`;
+        }
+        
+        // =============================================
+        // PAINEL DE ESTATÍSTICAS HISTÓRICAS (NOVO)
+        // Frequência, atraso, pares/ímpares e co-ocorrência,
+        // calculados sobre os concursos pesquisados na sessão atual.
+        // =============================================
+        function calcularFrequenciaGeral(tipo) {
+            const concursos = Object.keys(contagemNumerosSorteados[tipo]).map(Number).sort((a, b) => a - b);
+            const range = dados[tipo].range;
+            let freq = {};
+            for (let i = 1; i <= range; i++) freq[i] = 0;
+            concursos.forEach(c => {
+                (contagemNumerosSorteados[tipo][c] || []).forEach(n => {
+                    if (freq.hasOwnProperty(n)) freq[n]++;
+                });
+            });
+            return { concursos, freq, range };
+        }
+        
+        function classificarIntensidade(valor, maxValor) {
+            if (valor === 0) return 'freq-zero';
+            const intensidade = valor / maxValor;
+            if (intensidade >= 0.75) return 'freq-alta';
+            if (intensidade >= 0.4) return 'freq-media';
+            return 'freq-baixa';
+        }
+        
+        function atualizarPainelEstatisticas(tipo) {
+            const sufixo = tipo === 'lotofacil' ? 'LF' : 'MS';
+            const containerFreq = document.getElementById(`contagemSorteados${sufixo}`);
+            if (!containerFreq) return; // painel ainda não presente no DOM
+            
+            const { concursos, freq, range } = calcularFrequenciaGeral(tipo);
+            const infoEl = document.getElementById(`infoConcursosPesquisados${sufixo}`);
+            const atrasoEl = document.getElementById(`atrasoNumeros${sufixo}`);
+            
+            if (concursos.length === 0) {
+                if (infoEl) infoEl.innerHTML = '📋 Nenhum concurso pesquisado ainda nesta sessão. Use "Buscar" ou "Conferência em Massa" para gerar estatísticas.';
+                containerFreq.innerHTML = '';
+                if (atrasoEl) atrasoEl.innerHTML = '';
+                return;
+            }
+            
+            const min = concursos[0], max = concursos[concursos.length - 1];
+            if (infoEl) {
+                infoEl.innerHTML = concursos.length === 1
+                    ? `📋 Concurso pesquisado: <b>${min}</b> (1 concurso analisado)`
+                    : `📋 Concursos pesquisados: <b>${min} a ${max}</b> (${concursos.length} concursos analisados)`;
+            }
+            
+            // Frequência (ordenada da dezena mais sorteada para a menos sorteada)
+            const maxFreq = Math.max(...Object.values(freq), 1);
+            const numerosOrdenadosPorFreq = Object.keys(freq).map(Number).sort((a, b) => freq[b] - freq[a] || a - b);
+            containerFreq.innerHTML = numerosOrdenadosPorFreq.map(n => {
+                const classe = classificarIntensidade(freq[n], maxFreq);
+                return `<div class="numero-sorteado-item ${classe}" title="${freq[n]}x nos concursos pesquisados">
+                    <span class="num-valor">${n.toString().padStart(2, '0')}</span>
+                    <span class="num-contagem">${freq[n]}x</span>
+                </div>`;
+            }).join('');
+            
+            // =============================================
+            // Atraso: diferença REAL entre o número do concurso mais recente pesquisado
+            // e o número do concurso em que a dezena saiu pela última vez.
+            // (Corrigido: antes usava a posição na lista de concursos pesquisados,
+            // o que subestimava o atraso quando havia lacunas - ex: algum concurso
+            // que falhou ao buscar durante uma Conferência em Massa.)
+            // =============================================
+            let ultimaAparicaoConcurso = {};
+            for (let i = 1; i <= range; i++) ultimaAparicaoConcurso[i] = null;
+            concursos.forEach(c => {
+                (contagemNumerosSorteados[tipo][c] || []).forEach(n => {
+                    if (ultimaAparicaoConcurso.hasOwnProperty(n)) ultimaAparicaoConcurso[n] = c;
+                });
+            });
+            let atraso = {};
+            let nuncaSaiu = {};
+            for (let i = 1; i <= range; i++) {
+                if (ultimaAparicaoConcurso[i] === null) {
+                    // Nunca saiu em nenhum dos concursos pesquisados: o atraso real pode ser maior,
+                    // já que não sabemos o que aconteceu antes do primeiro concurso pesquisado.
+                    atraso[i] = max - min + 1;
+                    nuncaSaiu[i] = true;
+                } else {
+                    atraso[i] = max - ultimaAparicaoConcurso[i];
+                    nuncaSaiu[i] = false;
+                }
+            }
+            if (atrasoEl) {
+                const maisAtrasados = Object.keys(atraso).map(Number)
+                    .sort((a, b) => atraso[b] - atraso[a] || a - b)
+                    .slice(0, 10);
+                atrasoEl.innerHTML = maisAtrasados.map(n => {
+                    const rotulo = nuncaSaiu[n]
+                        ? `${atraso[n]}+ concurso(s) sem sair (não saiu em nenhum concurso pesquisado)`
+                        : `${atraso[n]} concurso(s) sem sair`;
+                    return `<div class="chip-atraso"><b>${n.toString().padStart(2, '0')}</b> — ${rotulo}</div>`;
+                }).join('');
+            }
+        }
+        
+        // =============================================
+        // MODAL DE CONTAGEM POR JOGO INDIVIDUAL (NOVO)
+        // =============================================
+        function abrirModalContagemJogo(tipo, idx) {
+            const jogo = dados[tipo].meusJogos[idx];
+            if (!jogo) return;
+            
+            const modal = document.getElementById('modalContagemJogo');
+            const titulo = document.getElementById('tituloModalContagem');
+            const info = document.getElementById('infoIntervaloModalContagem');
+            const grid = document.getElementById('gridContagemJogo');
+            
+            titulo.style.color = tipo === 'lotofacil' ? 'var(--cor-lotofacil)' : 'var(--cor-megasena)';
+            
+            const { concursos, freq } = calcularFrequenciaGeral(tipo);
+            
+            if (concursos.length === 0) {
+                info.innerHTML = 'Nenhum concurso foi pesquisado ainda nesta sessão. Use "Buscar" ou "Conferência em Massa" para gerar estatísticas.';
+                grid.innerHTML = '';
+                modal.style.display = 'flex';
+                return;
+            }
+            
+            const min = concursos[0], max = concursos[concursos.length - 1];
+            info.innerHTML = concursos.length === 1
+                ? `Baseado no concurso <b>${min}</b> (1 concurso pesquisado)`
+                : `Baseado nos concursos <b>${min} a ${max}</b> (${concursos.length} concursos pesquisados)`;
+            
+            const freqDoJogo = {};
+            jogo.numeros.forEach(n => { freqDoJogo[n] = freq[n] || 0; });
+            const maxFreqJogo = Math.max(...Object.values(freqDoJogo), 1);
+            const numerosOrdenados = [...jogo.numeros].sort((a, b) => freqDoJogo[b] - freqDoJogo[a] || a - b);
+            
+            grid.innerHTML = numerosOrdenados.map(n => {
+                const classe = classificarIntensidade(freqDoJogo[n], maxFreqJogo);
+                return `<div class="numero-sorteado-item ${classe}" title="${freqDoJogo[n]}x nos concursos pesquisados">
+                    <span class="num-valor">${n.toString().padStart(2, '0')}</span>
+                    <span class="num-contagem">${freqDoJogo[n]}x</span>
+                </div>`;
+            }).join('');
+            
+            modal.style.display = 'flex';
+        }
+        
+        function fecharModalContagemJogo() {
+            document.getElementById('modalContagemJogo').style.display = 'none';
+        }
+        
+        // =============================================
+        // GERAÇÃO DE JOGOS POR SUBSTITUIÇÃO (NOVO)
+        // Para cada jogo atualmente na tela, cria um novo jogo trocando os N números
+        // que MENOS saíram nos concursos pesquisados pelos números que MAIS saíram
+        // e que ainda não estão no jogo. O jogo gerado é sempre diferenciado do
+        // original (badge própria) e mostra de qual jogo ele veio.
+        // Baseia-se apenas no histórico já pesquisado - não é garantia de acerto.
+        // =============================================
+        function abrirModalOpcoesSubstituicao(tipo) {
+            if (dados[tipo].meusJogos.length === 0) {
+                exibirModal("Você precisa ter pelo menos um jogo salvo na tela para gerar jogos por substituição.", null, true);
+                return;
+            }
+            if (Object.keys(contagemNumerosSorteados[tipo] || {}).length === 0) {
+                exibirModal('Você precisa pesquisar pelo menos um concurso primeiro (use "Buscar" ou "Conferência em Massa") para ter dados de frequência.', null, true);
+                return;
+            }
+            
+            const modal = document.getElementById('modalCustom');
+            const msgEl = document.getElementById('modalMsg');
+            const containerBotoes = document.getElementById('modalContainerBotoes');
+            
+            msgEl.innerHTML = `<strong>🔄 Gerar Jogos por Substituição</strong><br><br>Para cada jogo salvo na tela será criado um novo jogo, trocando os números que <b>menos saíram</b> (nos concursos pesquisados) pelos que <b>mais saíram</b> e ainda não estão no jogo.<br><br>Quantos números substituir?`;
+            containerBotoes.innerHTML = '';
+            
+            const cores = ['#ff9800', '#f57c00', '#e65100'];
+            [1, 2, 3].forEach((qtd, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-modal btn-sim';
+                btn.style.cssText = `background:${cores[i]}; color:white;`;
+                btn.innerHTML = `${qtd} número${qtd > 1 ? 's' : ''}`;
+                btn.onclick = () => {
+                    modal.style.display = 'none';
+                    restaurarBotoesModal();
+                    executarSubstituicao(tipo, qtd);
+                };
+                containerBotoes.appendChild(btn);
+            });
+            
+            const btnCanc = document.createElement('button');
+            btnCanc.className = 'btn-modal btn-nao';
+            btnCanc.innerText = 'Cancelar';
+            btnCanc.onclick = () => {
+                modal.style.display = 'none';
+                restaurarBotoesModal();
+            };
+            containerBotoes.appendChild(btnCanc);
+            modal.style.display = 'flex';
+        }
+        
+        function gerarJogoPorSubstituicao(tipo, jogo, qtd) {
+            const { freq } = calcularFrequenciaGeral(tipo);
+            const range = dados[tipo].range;
+            
+            // Dezenas do próprio jogo, da menos sorteada para a mais sorteada
+            const ordenadosPorMenosFreq = [...jogo.numeros].sort((a, b) => (freq[a] || 0) - (freq[b] || 0));
+            const qtdReal = Math.min(qtd, jogo.numeros.length - 1); // nunca substitui o jogo inteiro
+            const paraSubstituir = new Set(ordenadosPorMenosFreq.slice(0, qtdReal));
+            const manter = jogo.numeros.filter(n => !paraSubstituir.has(n));
+            
+            // Candidatos de fora do jogo, do mais sorteado para o menos sorteado
+            let candidatos = [];
+            for (let i = 1; i <= range; i++) {
+                if (!jogo.numeros.includes(i)) candidatos.push(i);
+            }
+            candidatos.sort((a, b) => (freq[b] || 0) - (freq[a] || 0));
+            const novos = candidatos.slice(0, qtdReal);
+            
+            if (novos.length < qtdReal) return null; // não há candidatos suficientes
+            
+            return [...manter, ...novos].sort((a, b) => a - b);
+        }
+        
+        function executarSubstituicao(tipo, qtdSubstituicoes) {
+            const jogosBase = [...dados[tipo].meusJogos]; // snapshot dos jogos atualmente na tela
+            let jogosGerados = 0;
+            
+            jogosBase.forEach(jogo => {
+                // Salvaguarda: garante que o jogo de origem tenha um identificador válido
+                // antes de referenciá-lo (evita "Gerado do Jogo ?" ou "undefined")
+                if (!jogo.identificador) {
+                    jogo.identificador = gerarProximoIdentificador(tipo);
+                }
+                
+                const novosNumeros = gerarJogoPorSubstituicao(tipo, jogo, qtdSubstituicoes);
+                if (!novosNumeros) return;
+                
+                // Evita gerar um jogo idêntico a um que já existe na lista
+                const jaExiste = dados[tipo].meusJogos.some(j =>
+                    j.numeros.length === novosNumeros.length && j.numeros.every((n, i) => n === novosNumeros[i])
+                );
+                if (jaExiste) return;
+                
+                dados[tipo].meusJogos.push({
+                    numeros: novosNumeros,
+                    vitorias: 0,
+                    vitorias11: 0,
+                    vitorias12: 0,
+                    vitorias13: 0,
+                    ganhoAcumulado: 0,
+                    concursosVistos: [],
+                    identificador: gerarProximoIdentificador(tipo),
+                    geradoPorSubstituicao: true,
+                    origemIdentificador: jogo.identificador,
+                    substituicoesQuantidade: qtdSubstituicoes
+                });
+                jogosGerados++;
+            });
+            
+            if (jogosGerados > 0) {
+                salvarNoLocalStorage(tipo);
+                renderizar(tipo);
+                exibirModal(`✅ ${jogosGerados} novo(s) jogo(s) gerado(s) por substituição! Eles aparecem marcados com a origem na lista "Meus Jogos Salvos".`, null, true);
+            } else {
+                exibirModal('❌ Não foi possível gerar novos jogos (os jogos resultantes já existem na lista).', null, true);
+            }
+        }
+        
+        function processarAcumulo(tipo, custo, premio) {
+            const conc = dados[tipo].concursoAtual;
+            if (conc && !financeiroH[tipo].concursos_vistos.includes(conc) && dados[tipo].ganhadores.length > 0) {
+                financeiroH[tipo].investido += custo;
+                financeiroH[tipo].ganho += premio;
+                financeiroH[tipo].concursos_vistos.push(conc);
+            }
+        }
+        
+        function atualizarPainelFinanceiro(tipo) {
+            const sufixo = tipo === 'lotofacil' ? 'LF' : 'MS';
+            const saldo = financeiroH[tipo].ganho - financeiroH[tipo].investido;
+            document.getElementById(`valInvestido${sufixo}`).innerText = `R$ ${financeiroH[tipo].investido.toLocaleString('pt-br', {minimumFractionDigits: 2})}`;
+            document.getElementById(`valGanho${sufixo}`).innerText = `R$ ${financeiroH[tipo].ganho.toLocaleString('pt-br', {minimumFractionDigits: 2})}`;
+            const el = document.getElementById(`status${sufixo}`);
+            el.innerText = `Saldo: R$ ${saldo.toLocaleString('pt-br', {minimumFractionDigits: 2})}`;
+            el.className = 'financeiro-total ' + (saldo > 0 ? 'lucro' : (saldo < 0 ? 'prejuizo' : ''));
+            atualizarPercentual(tipo);
+        }
+        
+        function zerarFinanceiro(tipo) {
+            financeiroH[tipo] = { investido: 0, ganho: 0, concursos_vistos: [] };
+            contagemNumerosSorteados[tipo] = {};
+            atualizarPainelFinanceiro(tipo);
+            atualizarPainelEstatisticas(tipo);
+        }
+        
+        function resetarEBuscar(tipo, conc) {
+            zerarFinanceiro(tipo);
+            contagemElite[tipo] = { c14: 0, c15: 0, lista14: [], lista15: [], concursos_processados: [] };
+            limparEstatisticasJogos(tipo);
+            buscar(tipo, conc);
+        }
+        
+        function unificarNovosBotoes() {
+            ['lotofacil', 'megasena'].forEach(tipo => {
+                const container = document.querySelector(`#cont-${tipo} .add-jogo-section`);
+                if (container) {
+                    const hr = document.createElement('hr');
+                    hr.style.margin = "10px 0";
+                    hr.style.opacity = "0.3";
+                    container.appendChild(hr);
+                    const divMassa = document.createElement('div');
+                    divMassa.innerHTML = `
+                        <label style="font-size:12px"><b>Conferência em Massa:</b></label>
+                        <div style="display:flex; gap:5px; margin-top:5px">
+                            <input type="number" id="massa_${tipo}" placeholder="Conc. Inicial" style="flex:1; padding:8px; font-size:12px">
+                            <button id="btnMassa_${tipo}" class="btn" data-status="parado" style="flex:1; background:#f39c12; color:white; font-size:12px" onclick="conferirMassa('${tipo}')">🔍 Conferir até o Fim</button>
+                        </div>
+                        <div id="progContainer_${tipo}" class="progress-container"><div id="progBar_${tipo}" class="progress-bar"></div></div>
+                    `;
+                    container.appendChild(divMassa);
+                }
+            });
+        }
+        
+        // CÓDIGO DO SCANNER DE ALTA PERFORMANCE
+        let scannerJogosGerados = [];
+        
+        function abrirScannerAltaPerformance() {
+            document.getElementById('modalScanner').style.display = 'flex';
+            if (isMobile) document.body.style.overflow = 'hidden';
+            document.getElementById('scannerContent').innerHTML = `
+                <div class="scanner-header" style="display: flex; align-items: center; margin-bottom: 20px; gap: 15px; position: relative;">
+                    <h2 style="color: #9b2a92; margin: 0; font-size: 20px; line-height: 1.3; flex: 1;">LotoFácil: Scanner de Alta Performance</h2>
+                    <button class="close-scanner" onclick="fecharScanner()" style="background: #ff4444; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-weight: bold; font-size: 14px; display: flex; align-items: center; justify-content: center; padding: 0; flex-shrink: 0;">✕</button>
+                </div>
+                <div class="como-funciona" style="margin-bottom: 20px; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden;">
+                    <button class="como-funciona-btn" onclick="toggleExplicaçãoScanner()" style="width: 100%; background: #f8fafc; border: none; padding: 12px; text-align: left; cursor: pointer; font-weight: bold; color: #9b2a92; display: flex; justify-content: space-between; align-items: center; transition: 0.3s;">💡 Entenda como o Scanner funciona <span id="setaComoScanner">▼</span></button>
+                    <div id="explicaçãoContentScanner" style="padding: 0; max-height: 0; overflow: hidden; transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1); background: white; color: #4a5568;">
+                        <div style="padding: 20px; max-height: 400px; overflow-y: auto;">
+                            <h3 style="color: #9b2a92; margin-top: 0; margin-bottom: 15px; border-bottom: 2px solid #f0f0f0; padding-bottom: 8px;">📈 Como o Scanner de Alta Performance Funciona</h3>
+                            <div style="margin-bottom: 20px;"><h4 style="color: #7b1fa2; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;"><span style="background: #9b2a92; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px;">1</span>Amostragem Inteligente de Concursos</h4><p style="margin: 0 0 10px 32px; line-height: 1.6;">O sistema analisa <strong>concursos históricos</strong> para identificar padrões. Quanto maior o intervalo selecionado, mais dados são processados, mas também mais difícil é encontrar jogos que se encaixem perfeitamente em todos os critérios.</p><div style="margin-left: 32px; background: linear-gradient(90deg, #f3e5f5, #e1f5fe); padding: 10px; border-radius: 6px; font-size: 12px;"><strong>Recomendação:</strong> Para iniciantes, use 50-100 concursos. Para análises avançadas, 200-300 concursos.</div></div>
+                            <div style="margin-bottom: 20px;"><h4 style="color: #1976d2; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;"><span style="background: #2196f3; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px;">2</span>Processamento de Tentativas</h4><p style="margin: 0 0 10px 32px; line-height: 1.6;">Cada <strong>tentativa</strong> representa um jogo gerado aleatoriamente e testado contra todos os concursos selecionados. Mais tentativas = maior chance de encontrar combinações vencedoras. Mas uma quantidade muito alta de tentativas pode demorar para processar ou travar o sistema.</p><div style="margin-left: 32px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;"><div style="background: #e8f5e8; padding: 8px; border-radius: 6px; border-left: 3px solid #4caf50;"><small><strong>Baixo (1.000-5.000):</strong><br>Processamento rápido, resultados básicos</small></div><div style="background: #fff3e0; padding: 8px; border-radius: 6px; border-left: 3px solid #ff9800;"><small><strong>Médio (5.000-20.000):</strong><br>Balanço entre tempo e qualidade</small></div><div style="background: #fce4ec; padding: 8px; border-radius: 6px; border-left: 3px solid #e91e63;"><small><strong>Alto (20.000-50.000):</strong><br>Resultados otimizados, mais tempo</small></div><div style="background: #e3f2fd; padding: 8px; border-radius: 6px; border-left: 3px solid #2196f3;"><small><strong>Máximo (50.000+):</strong><br>Melhores resultados, pode demorar</small></div></div></div>
+                            <div style="margin-bottom: 20px;"><h4 style="color: #388e3c; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;"><span style="background: #4caf50; color: white; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px;">3</span>Estratégias de Busca</h4><div style="margin-left: 32px;"><div style="display: flex; flex-direction: column; gap: 15px;"><div><h5 style="color: #9b2a92; margin: 0 0 5px 0; font-size: 14px;">🎯 Foco em Lucro Puro</h5><p style="margin: 0; font-size: 13px; line-height: 1.5;">Os primeiros jogos buscam <strong>maximizar o retorno financeiro</strong> histórico, priorizando combinações que gerariam mais prêmios nos concursos analisados. Mas podem deixar concursos sem premiação (lacunas).</p></div><div><h5 style="color: #209869; margin: 0 0 5px 0; font-size: 14px;">🔄 Modo Híbrido (Lucro + Cobertura)</h5><p style="margin: 0; font-size: 13px; line-height: 1.5;">Jogos subsequentes equilibram lucro com <strong>cobertura de lacunas</strong> - preenchem concursos que ainda não foram premiados, aumentando a frequência de acertos.</p></div></div></div></div>
+                            <div style="margin-top: 25px; padding: 15px; background: linear-gradient(135deg, #f5f7fa, #c3cfe2); border-radius: 10px; border: 1px solid #d1d9e6;"><h4 style="color: #5d4037; margin-top: 0; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;"><span style="font-size: 20px;">💎</span> Configuração Recomendada para Iniciantes</h4><div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 13px;"><div><strong>Concurso Inicial:</strong><br><code style="background: white; padding: 4px 8px; border-radius: 4px; font-family: monospace;">Último - 100</code></div><div><strong>Qtd de Jogos:</strong><br><code style="background: white; padding: 4px 8px; border-radius: 4px; font-family: monospace;">4-6 jogos</code></div><div><strong>Tentativas Base:</strong><br><code style="background: white; padding: 4px 8px; border-radius: 4px; font-family: monospace;">10.000</code></div><div><strong>Foco Lucro:</strong><br><code style="background: white; padding: 4px 8px; border-radius: 4px; font-family: monospace;">2 jogos</code></div></div><p style="margin: 15px 0 0 0; font-size: 12px; color: #666; text-align: center;"><em>Esta configuração oferece um bom equilíbrio entre tempo de processamento e qualidade dos resultados.</em></p></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="painel-financeiro" style="background: #1a202c; color: white; border-radius: 10px; padding: 15px; margin-bottom: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center;">
+                    <div class="fin-box" style="display: flex; flex-direction: column; border-right: 1px solid #4a5568;"><span class="fin-label" style="font-size: 10px; font-weight: bold; color: #a0aec0; text-transform: uppercase;">Total Gasto</span><span id="finInvestidoScanner" class="fin-val" style="font-size: 14px; font-weight: bold; margin-top: 5px;">R$ 0,00</span></div>
+                    <div class="fin-box" style="display: flex; flex-direction: column; border-right: 1px solid #4a5568;"><span class="fin-label" style="font-size: 10px; font-weight: bold; color: #a0aec0; text-transform: uppercase;">Retorno</span><span id="finGanhoScanner" class="fin-val" style="font-size: 14px; font-weight: bold; margin-top: 5px; color: #48bb78">R$ 0,00</span></div>
+                    <div class="fin-box" style="display: flex; flex-direction: column;"><span class="fin-label" style="font-size: 10px; font-weight: bold; color: #a0aec0; text-transform: uppercase;">Balanço</span><span id="finResultadoScanner" class="fin-val" style="font-size: 14px; font-weight: bold; margin-top: 5px;">R$ 0,00</span></div>
+                </div>
+                <div class="dashboard-cobertura" style="background: #fff; border: 1px solid #ddd; padding: 12px; border-radius: 10px; margin-bottom: 20px;"><div class="stats-grid" style="display: grid; grid-template-columns: 1fr 1fr; text-align: center; font-size: 12px; font-weight: bold; color: #4a5568; gap: 10px;"><div style="background: #f7fafc; padding: 8px; border-radius: 6px;">Cobertos: <span id="valCobertosScanner" style="color: #9b2a92;">0</span></div><div style="background: #f7fafc; padding: 8px; border-radius: 6px;">Não premiados: <span id="valLacunasScanner" style="color: #e74c3c;">0</span></div></div><div class="progress-container" style="background: #edf2f7; border-radius: 20px; height: 10px; margin: 12px 0; overflow: hidden; border: 1px solid #e2e8f0;"><div id="progressoBarraScanner" class="progress-bar" style="background: linear-gradient(90deg, #9b2a92, #209869); height: 100%; width: 0%; transition: 0.8s;"></div></div><center><small id="pctTextoSanner" style="color: #718096; font-weight: bold; font-size: 12px;">Cobertura: 0%</small></center></div>
+                <div class="config-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px;"><div class="campo" style="display: flex; flex-direction: column; gap: 5px;"><label style="font-size: 12px; font-weight: bold; color: #555;">Concurso Inicial:</label><input type="number" id="concFocoScanner" placeholder="Ex: 3100" style="padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; transition: 0.3s; width: 100%; box-sizing: border-box;" onfocus="this.style.borderColor='#9b2a92'"><label><span id="infoUltimoConcursoScanner" style="font-size: 10px; color: #209869; margin-bottom: 2px; display: block; line-height: 1.3;">Carregando último concurso...</span></label></div><div class="campo" style="display: flex; flex-direction: column; gap: 5px;"><label style="font-size: 12px; font-weight: bold; color: #555;">Qtd de Jogos:</label><input type="number" id="qtdJogosScanner" value="6" style="padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; transition: 0.3s; width: 100%; box-sizing: border-box;" onfocus="this.style.borderColor='#9b2a92'" oninput="document.getElementById('qtdLucroPuroScanner').max = this.value"></div><div class="campo" style="display: flex; flex-direction: column; gap: 5px;"><label style="font-size: 12px; font-weight: bold; color: #555;">Tentativas:</label><input type="number" id="limiteTentativasScanner" value="10000" style="padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; transition: 0.3s; width: 100%; box-sizing: border-box;" onfocus="this.style.borderColor='#9b2a92'"></div><div class="campo" style="display: flex; flex-direction: column; gap: 5px;"><label style="font-size: 12px; font-weight: bold; color: #555;">Foco Lucro:</label><input type="number" id="qtdLucroPuroScanner" value="2" title="Jogos focados apenas no lucro" style="padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; transition: 0.3s; width: 100%; box-sizing: border-box;" onfocus="this.style.borderColor='#9b2a92'"></div></div>
+                <div class="controles" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;"><button id="btnIniciarScanner" class="btn-start" onclick="iniciarScannerBusca()" style="padding: 14px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 15px; background: #9b2a92; color: white; width: 100%;">🔍 Iniciar Scanner</button><button id="btnPararScanner" class="btn-stop" onclick="pararScannerTudo()" style="padding: 14px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 15px; background: #e74c3c; color: white; display: none; width: 100%;">🛑 Parar</button></div>
+                <div id="statusRealScanner" style="background: #fffde7; border: 1px solid #fbc02d; padding: 12px; border-radius: 8px; margin-bottom: 15px; display: none; text-align: center;"><div id="statusMsgScanner" style="font-weight: bold; color: #555; margin-bottom: 5px; font-size: 13px;">Processando...</div><span id="contadorTentativasScanner" class="contador-live" style="font-family: monospace; font-size: 18px; color: #9b2a92; font-weight: bold;">0</span></div>
+                <div id="resultadoFinalScanner" class="lista-jogos" style="margin-top: 15px; width: 100%;"></div>
+                <button class="btn-transferir" onclick="transferirJogosScanner()" style="background: linear-gradient(45deg, #209869, #1e824c); color: white; font-size: 14px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; padding: 14px; transition: 0.3s; width: 100%; margin: 15px 0;">📤 Transferir Jogos para o Painel Principal</button>
+                <div id="modalScannerConfirm" class="modal-scanner-confirm" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10002; align-items: center; justify-content: center;"><div class="modal-scanner-confirm-content" style="background: white; padding: 25px; border-radius: 12px; max-width: 400px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative;"><button id="btnScannerClose" onclick="fecharModalScannerConfirm()" style="position: absolute; top: 10px; right: 10px; background: transparent; border: none; font-size: 20px; cursor: pointer; color: #666; padding: 0; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">×</button><div id="modalScannerMsg" style="font-weight: bold; color: #333; margin-bottom: 15px; padding-top: 10px;"></div><div class="modal-scanner-buttons" style="display: flex; gap: 10px; margin-top: 20px; justify-content: center; flex-wrap: wrap;"><button id="btnScannerConfirm" class="btn-scanner-confirm" style="padding: 12px 20px; background: #4CAF50; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; flex: 1; min-width: 140px;">Confirmar</button><button id="btnScannerCancel" class="btn-scanner-cancel" style="padding: 12px 20px; background: #f44336; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; flex: 1; min-width: 140px;">Cancelar</button><button id="btnScannerCloseModal" class="btn-scanner-close" style="padding: 10px 15px; background: #666; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 13px; width: 100%; margin-top: 5px;">✕ Fechar (Não transferir)</button></div></div></div>
+                <div class="aviso-legal" style="margin-top: 15px; font-size: 11px; color: #777; text-align: center; line-height: 1.4; padding: 10px; border-top: 1px dashed #ccc;">⚠️ <b>Aviso:</b> Este site/aplicativo é uma ferramenta independente para facilitar a conferência de jogos da LotoFácil e da Mega-Sena. Pode ocorre eventuais inconsistências nos resultados apresentados. <b>Sempre confira seu bilhete no site oficial das Lotérias Caixa.</b> Os jogos gerados neste site/aplicativo <b>não garante ganhos reais ou prêmios nos concursos futuros</b>. O aplicativo não possui vínculo com a Caixa Econômica Federal. <p style="text-align: center;">🔞 <b>APOSTAR É PROIBIDO PARA MENORES DE 18 ANOS</b></div>
+            `;
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    const modal = document.getElementById('modalScannerConfirm');
+                    if (modal && modal.style.display === 'flex') fecharModalScannerConfirm();
+                }
+            });
+            carregarUltimoConcursoScanner();
+        }
+        
+        function fecharScanner() {
+            document.getElementById('modalScanner').style.display = 'none';
+            if (isMobile) document.body.style.overflow = 'auto';
+            scannerJogosGerados = [];
+            restaurarBotoesModal();
+        }
+        
+        function toggleExplicaçãoScanner() {
+            const content = document.getElementById('explicaçãoContentScanner');
+            const seta = document.getElementById('setaComoScanner');
+            if (content.style.maxHeight === "0px" || content.style.maxHeight === "") {
+                content.style.maxHeight = "500px";
+                seta.innerText = "▲";
+            } else {
+                content.style.maxHeight = "0px";
+                seta.innerText = "▼";
+            }
+        }
+        
+        async function carregarUltimoConcursoScanner() {
+            try {
+                const resp = await fetch(`https://loteriascaixa-api.herokuapp.com/api/lotofacil/latest`);
+                const dados = await resp.json();
+                if (dados && dados.concurso) {
+                    document.getElementById('infoUltimoConcursoScanner').innerText = `Último concurso: ${dados.concurso} (${dados.data})`;
+                }
+            } catch (e) {
+                document.getElementById('infoUltimoConcursoScanner').innerText = "Erro ao carregar último";
+            }
+        }
+        
+        let scannerRodando = false;
+        let scannerConcursosData = [];
+        let scannerConcPremiadosGeral = new Set();
+        let scannerJogosSelecionadosMasks = new Set();
+        const PREMIOS_SCANNER = { 11: 7, 12: 14, 13: 35 };
+        const CUSTO_JOGO_SCANNER = 3.50;
+        
+        function dezenasParaMaskScanner(dezenas) {
+            let mask = 0;
+            for (let n of dezenas) mask |= (1 << (n - 1));
+            return mask;
+        }
+        
+        function gerarDezenasScanner() {
+            let n = new Set();
+            while(n.size < 15) n.add(Math.floor(Math.random() * 25) + 1);
+            let lista = [...n].sort((a,b) => a - b);
+            return { lista: lista, mask: dezenasParaMaskScanner(lista) };
+        }
+        
+        function conferirScanner(maskA, maskB) {
+            let intersec = maskA & maskB;
+            let acertos = 0;
+            while (intersec) { intersec &= (intersec - 1); acertos++; }
+            return acertos;
+        }
+        
+        function atualizarDashboardScanner() {
+            const totalConc = scannerConcursosData.length;
+            const cobertos = scannerConcPremiadosGeral.size;
+            const pct = totalConc > 0 ? (cobertos / totalConc) * 100 : 0;
+            document.getElementById('valCobertosScanner').innerText = cobertos;
+            document.getElementById('valLacunasScanner').innerText = totalConc - cobertos;
+            document.getElementById('progressoBarraScanner').style.width = pct + "%";
+            document.getElementById('pctTextoSanner').innerText = `Eficiência de Cobertura: ${pct.toFixed(1)}%`;
+            const qtdJogosGerados = document.querySelectorAll('#resultadoFinalScanner .jogo-item').length;
+            const investidoTotal = (CUSTO_JOGO_SCANNER * totalConc) * qtdJogosGerados;
+            let ganhoTotal = 0;
+            document.querySelectorAll('.retorno-valor-scanner').forEach(el => {
+                ganhoTotal += parseFloat(el.getAttribute('data-valor'));
+            });
+            const liquido = ganhoTotal - investidoTotal;
+            document.getElementById('finInvestidoScanner').innerText = `R$ ${investidoTotal.toLocaleString('pt-br', {minimumFractionDigits: 2})}`;
+            document.getElementById('finGanhoScanner').innerText = `R$ ${ganhoTotal.toLocaleString('pt-br', {minimumFractionDigits: 2})}`;
+            document.getElementById('finResultadoScanner').innerText = `R$ ${liquido.toLocaleString('pt-br', {minimumFractionDigits: 2})}`;
+            document.getElementById('finResultadoScanner').style.color = liquido >= 0 ? '#209869' : '#e74c3c';
+        }
+        
+        function pararScannerTudo() { 
+            scannerRodando = false; 
+            document.getElementById('btnPararScanner').style.display = 'none';
+            document.getElementById('btnIniciarScanner').disabled = false;
+        }
+        
+        function mostrarToastScanner(mensagem, tipo = 'info', posicao = 'top-right') {
+            const toast = document.createElement('div');
+            let corFundo, corBorda, icone;
+            switch(tipo) {
+                case 'sucesso': corFundo = '#4CAF50'; corBorda = '#388E3C'; icone = '✅'; break;
+                case 'erro': corFundo = '#F44336'; corBorda = '#D32F2F'; icone = '❌'; break;
+                case 'alerta': corFundo = '#FF9800'; corBorda = '#F57C00'; icone = '⚠️'; break;
+                default: corFundo = '#2196F3'; corBorda = '#1976D2'; icone = 'ℹ️';
+            }
+            let posicaoCSS;
+            switch(posicao) {
+                case 'center': posicaoCSS = `top: 50%; left: 50%; transform: translate(-50%, -50%);`; break;
+                default: posicaoCSS = `top: 20px; right: 20px;`;
+            }
+            toast.style.cssText = `position: fixed; ${posicaoCSS} background: ${corFundo}; color: white; padding: 15px 25px; border-radius: 12px; z-index: 10001; box-shadow: 0 8px 25px rgba(0,0,0,0.2); border-left: 6px solid ${corBorda}; animation: slideInCenter 0.5s ease-out; font-weight: bold; display: flex; align-items: center; gap: 10px; min-width: 300px; font-size: 14px;`;
+            const style = document.createElement('style');
+            style.textContent = `@keyframes slideInCenter { from { opacity: 0; transform: translateX(20px); } to { opacity: 0.95; transform: translateX(0); } } @keyframes fadeOut { from { opacity: 0.95; } to { opacity: 0; } }`;
+            document.head.appendChild(style);
+            toast.innerHTML = `<div style="font-size: 18px;">${icone}</div><div>${mensagem}</div>`;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.style.animation = 'fadeOut 0.5s ease-out forwards'; setTimeout(() => toast.remove(), 500); }, 3000);
+        }
+        
+        async function iniciarScannerBusca() {
+            const valConc = document.getElementById('concFocoScanner').value;
+            const valQtd = document.getElementById('qtdJogosScanner').value;
+            const valTentativas = document.getElementById('limiteTentativasScanner').value;
+            const valLucro = document.getElementById('qtdLucroPuroScanner').value;
+            if (!valConc || parseInt(valConc) < 1) { mostrarToastScanner("⚠️ Insira um valor válido para: Concurso Inicial", 'info', 'center'); return; }
+            if (!valQtd || parseInt(valQtd) < 1) { mostrarToastScanner("⚠️ Insira um valor válido para: Qtd Total de Jogos", 'info', 'center'); return; }
+            if (!valTentativas || parseInt(valTentativas) < 1) { mostrarToastScanner("⚠️ Insira um valor válido para: Tentativas Base", 'info', 'center'); return; }
+            if (!valLucro || parseInt(valLucro) < 1) { mostrarToastScanner("⚠️ Insira um valor válido para: Jogos Foco Lucro Puro", 'info', 'center'); return; }
+            const inicioNum = parseInt(valConc);
+            try {
+                document.getElementById('statusMsgScanner').innerText = "Verificando último concurso...";
+                document.getElementById('statusRealScanner').style.display = 'block';
+                const resp = await fetch(`https://loteriascaixa-api.herokuapp.com/api/lotofacil/latest`);
+                const ultimoConcurso = await resp.json();
+                if (inicioNum > ultimoConcurso.concurso) {
+                    mostrarToastScanner(`⚠️ CONCURSO NÃO ENCONTRADO OU NÃO SORTEADO.<br>O último concurso disponível é o ${ultimoConcurso.concurso}.`, 'erro', 'center');
+                    document.getElementById('statusRealScanner').style.display = 'none';
+                    return;
+                }
+                if (inicioNum < 1) document.getElementById('concFocoScanner').value = 1;
+                else if (inicioNum > ultimoConcurso.concurso) document.getElementById('concFocoScanner').value = ultimoConcurso.concurso;
+            } catch (e) {
+                mostrarToastScanner("Erro ao verificar último concurso.<br>Verifique sua conexão.", 'erro', 'center');
+                document.getElementById('statusRealScanner').style.display = 'none';
+                return;
+            }
+            const limiteBase = parseInt(valTentativas);
+            const totalJogosDesejados = parseInt(valQtd);
+            const corteLucroPuro = parseInt(valLucro);
+            scannerRodando = true;
+            scannerConcPremiadosGeral.clear();
+            scannerJogosSelecionadosMasks.clear();
+            scannerJogosGerados = [];
+            document.getElementById('btnIniciarScanner').disabled = true;
+            document.getElementById('btnPararScanner').style.display = 'block';
+            document.getElementById('statusRealScanner').style.display = 'block';
+            document.getElementById('resultadoFinalScanner').innerHTML = "";
+            try {
+                document.getElementById('statusMsgScanner').innerText = "Baixando resultados da API...";
+                const resp = await fetch(`https://loteriascaixa-api.herokuapp.com/api/lotofacil/`);
+                const dados = await resp.json();
+                scannerConcursosData = dados.filter(c => c.concurso >= inicioNum).map(c => ({ id: c.concurso, mask: dezenasParaMaskScanner(c.dezenas.map(Number)) }));
+                if (scannerConcursosData.length === 0) {
+                    mostrarToastScanner(`⚠️ Nenhum concurso encontrado a partir do ${inicioNum}.`, 'erro');
+                    document.getElementById('btnIniciarScanner').disabled = false;
+                    document.getElementById('btnPararScanner').style.display = 'none';
+                    document.getElementById('statusRealScanner').style.display = 'none';
+                    return;
+                }
+                for (let j = 1; j <= totalJogosDesejados; j++) {
+                    if (!scannerRodando) break;
+                    let melhorDoCiclo = { score: -1, jogo: [], mask: 0, s11:0, s12:0, s13:0, lucro: 0, ids: [], tentativasReais: 0 };
+                    let modoHibrido = j > corteLucroPuro;
+                    let limiteTentativasCiclo = modoHibrido ? (limiteBase * 2) : limiteBase;
+                    for (let t = 1; t <= limiteTentativasCiclo; t++) {
+                        if (!scannerRodando) break;
+                        let candidato = gerarDezenasScanner();
+                        if (scannerJogosSelecionadosMasks.has(candidato.mask)) continue;
+                        let stats = { 11: 0, 12: 0, 13: 0, lucro: 0, ids: [] };
+                        scannerConcursosData.forEach(conc => {
+                            let pts = conferirScanner(candidato.mask, conc.mask);
+                            if (pts >= 11 && pts <= 13) {
+                                stats[pts]++;
+                                stats.lucro += PREMIOS_SCANNER[pts];
+                                stats.ids.push(conc.id);
+                            }
+                        });
+                        let score = stats.lucro; 
+                        let novosAtendidos = 0;
+                        if (modoHibrido) {
+                            novosAtendidos = stats.ids.filter(id => !scannerConcPremiadosGeral.has(id)).length;
+                            score += (novosAtendidos * 85); 
+                        }
+                        if (score > melhorDoCiclo.score) {
+                            melhorDoCiclo = { score: score, jogo: candidato.lista, mask: candidato.mask, lucro: stats.lucro, s11: stats[11], s12: stats[12], s13: stats[13], novos: novosAtendidos, ids: stats.ids, tentativasReais: t, hibrido: modoHibrido };
+                        }
+                        if (t % 500 === 0) {
+                            document.getElementById('contadorTentativasScanner').innerText = `${t} / ${limiteTentativasCiclo}`;
+                            document.getElementById('statusMsgScanner').innerText = `Escaneando Jogo ${j}...`;
+                            await new Promise(r => setTimeout(r, 0));
+                        }
+                    }
+                    if (melhorDoCiclo.score > -1) {
+                        melhorDoCiclo.ids.forEach(id => scannerConcPremiadosGeral.add(id));
+                        scannerJogosSelecionadosMasks.add(melhorDoCiclo.mask);
+                        scannerJogosGerados.push(melhorDoCiclo.jogo);
+                        exibirJogoScanner(j, melhorDoCiclo);
+                        atualizarDashboardScanner();
+                    }
+                }
+            } catch (e) {
+                mostrarToastScanner("Erro ao carregar dados da API.", 'erro');
+                console.error(e);
+            } finally {
+                scannerRodando = false;
+                document.getElementById('btnIniciarScanner').disabled = false;
+                document.getElementById('btnPararScanner').style.display = 'none';
+                document.getElementById('statusRealScanner').style.display = 'none';
+                document.getElementById('statusMsgScanner').innerText = scannerJogosGerados.length > 0 ? `Processamento concluído! ${scannerJogosGerados.length} jogos gerados.` : "Processamento concluído.";
+            }
+        }
+        
+        function exibirJogoScanner(num, d) {
+            const container = document.getElementById('resultadoFinalScanner');
+            const item = document.createElement('div');
+            item.className = 'jogo-item';
+            item.style.cssText = `background: white; border: 1px solid #eee; border-radius: 12px; padding: 18px; margin-bottom: 15px; position: relative; border-left: 6px solid ${d.hibrido ? '#f39c12' : '#9b2a92'}; box-shadow: 0 4px 6px rgba(0,0,0,0.05);`;
+            item.innerHTML = `<div style="position: absolute; top: -10px; left: 15px; background: ${d.hibrido ? '#f39c12' : '#9b2a92'}; color: white; padding: 3px 12px; border-radius: 20px; font-size: 10px; font-weight: bold;">${d.hibrido ? 'SCAN HÍBRIDO (LACUNA+LUCRO)' : 'BUSCA: FOCO LUCRO PURO'} - JOGO ${num}</div>
+            <div class="dezenas" style="display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0;">${d.jogo.map(n => `<div class="bola" style="width: 32px; height: 32px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; color: #9b2a92; border: 2px solid #9b2a92;">${n.toString().padStart(2, '0')}</div>`).join('')}</div>
+            <div class="resumo-financeiro" style="background: #f0fff4; padding: 12px; border-radius: 8px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; border: 1px solid #c6f6d5;">
+                <div class="lucro-destaque" style="grid-column: span 2; font-size: 15px; color: #209869; font-weight: bold; text-align: center; border-bottom: 1px solid #c6f6d5; padding-bottom: 5px; margin-bottom: 5px;">RETORNO HISTÓRICO: <span class="retorno-valor-scanner" data-valor="${d.lucro}">R$ ${d.lucro.toFixed(2)}</span></div>
+                <span>🎯 13 Pontos: <b>${d.s13}x</b></span>
+                <span>🥈 12 Pontos: <b>${d.s12}x</b></span>
+                <span>🥉 11 Pontos: <b>${d.s11}x</b></span>
+                <span>✨ Novas Lacunas: <b>+${d.novos}</b></span>
+                <span style="grid-column: span 2; font-size: 9px; color: #999; text-align: center; margin-top: 5px;">Analisado em ${d.tentativasReais} tentativas</span>
+            </div>`;
+            container.appendChild(item);
+        }
+        
+        function transferirJogosScanner() {
+            if (scannerJogosGerados.length === 0) {
+                mostrarToastScanner("Não há jogos gerados para transferir.", 'erro', 'center');
+                return;
+            }
+            const jogosExistentes = dados['lotofacil'].meusJogos.length;
+            if (jogosExistentes > 0) {
+                const modal = document.getElementById('modalScannerConfirm');
+                const msgEl = document.getElementById('modalScannerMsg');
+                const btnConfirm = document.getElementById('btnScannerConfirm');
+                const btnCancel = document.getElementById('btnScannerCancel');
+                const btnCloseModal = document.getElementById('btnScannerCloseModal');
+                msgEl.innerHTML = `<div style="text-align: left;"><p style="color: #f39c12; font-size: 16px; margin-bottom: 10px;"><strong>⚠️ Atenção!</strong></p><p>Você tem <strong style="color: #9b2a92;">${jogosExistentes} jogo(s)</strong> salvos no painel principal.</p><p>Deseja <strong style="color: #d93025;">APAGAR todos os jogos atuais</strong> e substituir pelos <strong style="color: #209869;">${scannerJogosGerados.length} jogo(s)</strong> gerados no scanner?</p><div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; border-radius: 5px; margin-top: 15px; font-size: 12px;"><strong>📝 Observação:</strong> Esta ação não pode ser desfeita. Os jogos atuais serão perdidos.</div></div>`;
+                btnConfirm.innerText = '🔄 Substituir (Apagar tudo)';
+                btnConfirm.style.background = '#d93025';
+                btnCancel.innerText = '➕ Adicionar (Manter atual)';
+                btnCancel.style.background = '#2196F3';
+                btnCloseModal.innerText = '✕ Fechar (Não transferir)';
+                modal.style.display = 'flex';
+                btnConfirm.onclick = function() { modal.style.display = 'none'; executarTransferenciaScanner(true); };
+                btnCancel.onclick = function() {
+                    modal.style.display = 'none';
+                    msgEl.innerHTML = `<div style="text-align: left;"><p style="color: #2196F3; font-size: 16px; margin-bottom: 10px;"><strong>➕ Adicionar Jogos</strong></p><p>Deseja <strong>adicionar os ${scannerJogosGerados.length} jogo(s)</strong> do scanner <strong>sem apagar</strong> os jogos existentes?</p><p>Total final: <strong style="color: #209869;">${jogosExistentes + scannerJogosGerados.length} jogos</strong></p><div style="background: #d4edda; border: 1px solid #c3e6cb; padding: 10px; border-radius: 5px; margin-top: 15px; font-size: 12px;"><strong>💡 Opções:</strong><br>1. <strong>Substituir:</strong> Apaga tudo e adiciona apenas os novos<br>2. <strong>Adicionar:</strong> Mantém os atuais e adiciona os novos<br>3. <strong>Cancelar:</strong> Não transferir nenhum jogo</div></div>`;
+                    btnConfirm.innerText = '✅ Adicionar (Manter tudo)';
+                    btnConfirm.style.background = '#4CAF50';
+                    btnCancel.innerText = '🔄 Voltar à substituição';
+                    btnCancel.style.background = '#f39c12';
+                    btnConfirm.onclick = function() { modal.style.display = 'none'; executarTransferenciaScanner(false); };
+                    btnCancel.onclick = function() { modal.style.display = 'none'; setTimeout(() => transferirJogosScanner(), 50); };
+                    modal.style.display = 'flex';
+                };
+                btnCloseModal.onclick = function() { modal.style.display = 'none'; mostrarToastScanner("❌ Transferência cancelada. Nenhum jogo foi transferido.", 'info', 'center'); };
+            } else {
+                executarTransferenciaScanner(false);
+            }
+        }
+        
+        function fecharModalScannerConfirm() {
+            const modal = document.getElementById('modalScannerConfirm');
+            if (modal) {
+                modal.style.display = 'none';
+                mostrarToastScanner("❌ Transferência cancelada. Nenhum jogo foi transferido.", 'info', 'center');
+            }
+        }
+        
+        function executarTransferenciaScanner(apagarExistentes) {
+            if (apagarExistentes) {
+                dados['lotofacil'].meusJogos = [];
+                financeiroH['lotofacil'] = { investido: 0, ganho: 0, concursos_vistos: [] };
+                contagemElite['lotofacil'] = { c14: 0, c15: 0, lista14: [], lista15: [], concursos_processados: [] };
+                mostrarToastScanner(`🗑️ ${scannerJogosGerados.length} jogos transferidos (substituídos)`, 'info', 'center');
+            } else {
+                const jogosAntes = dados['lotofacil'].meusJogos.length;
+                mostrarToastScanner(`➕ ${scannerJogosGerados.length} jogos adicionados (total: ${jogosAntes + scannerJogosGerados.length})`, 'sucesso', 'center');
+            }
+            scannerJogosGerados.forEach(jogo => {
+                dados['lotofacil'].meusJogos.push({ numeros: jogo, vitorias: 0, vitorias12: 0, vitorias13: 0, vitorias11: 0, ganhoAcumulado: 0, concursosVistos: [], identificador: gerarProximoIdentificador('lotofacil') });
+            });
+            salvarNoLocalStorage('lotofacil');
+            renderizar('lotofacil');
+            if (!document.getElementById('cont-lotofacil').classList.contains('active')) switchTab('lotofacil');
+            setTimeout(() => { fecharScanner(); }, 500);
+        }
+        
+        let tooltipTimeout;
+        function showTooltip() {
+            const tooltip = document.getElementById('meuBalao');
+            if (tooltipTimeout) clearTimeout(tooltipTimeout);
+            tooltip.classList.add('show');
+            tooltipTimeout = setTimeout(() => { tooltip.classList.remove('show'); }, 3000);
+            tooltip.onclick = function(e) {
+                e.stopPropagation();
+                copyToClipboard('aironagm@gmail.com');
+                const originalText = tooltip.innerHTML;
+                tooltip.innerHTML = '✅ Email copiado!';
+                tooltip.style.background = '#27ae60';
+                setTimeout(() => { tooltip.innerHTML = originalText; tooltip.style.background = '#2c3e50'; }, 1500);
+            };
+        }
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).catch(() => {
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+            });
+        }
+
+
+    // Função para voltar ao aplicativo (fechar paywall durante trial)
+function voltarParaApp() {
+    console.log('🔙 Voltando para o aplicativo...');
+    
+    // Se estiver em período de trial, apenas fecha o paywall
+    if (trialInfo.isInTrial && trialInfo.remainingDays > 0) {
+        document.getElementById('paywall').style.display = 'none';
+        document.body.style.overflow = 'auto';
+        console.log('✅ Paywall fechado - usuário continua no trial');
+    } else {
+        // Se não estiver em trial, não pode voltar (deve assinar)
+        console.log('⚠️ Usuário não está em trial, deve assinar');
+    }
+}
+
+
+        // =============================================
+// FUNÇÕES PARA SELEÇÃO DE PLANOS NO PAYWALL
+// =============================================
+let planoSelecionadoPaywall = 'mensal'; // 'mensal' ou 'anual'
+
+function selecionarPlanoPaywall(plano) {
+    planoSelecionadoPaywall = plano;
+    
+    const planoMensal = document.getElementById('planoMensal');
+    const planoAnual = document.getElementById('planoAnual');
+    const checkMensal = document.getElementById('checkMensal');
+    const checkAnual = document.getElementById('checkAnual');
+    const btnAssinar = document.getElementById('btnAssinarPaywall');
+    const infoPlano = document.getElementById('infoPlanoSelecionado');
+    
+    if (plano === 'mensal') {
+        // Destaca plano mensal
+        planoMensal.style.border = '3px solid #9b2a92';
+        planoMensal.style.background = '#faf5ff';
+        planoAnual.style.border = '2px solid #e0c3fc';
+        planoAnual.style.background = 'white';
+        checkMensal.style.display = 'block';
+        checkAnual.style.display = 'none';
+        
+        // Atualiza botão
+        btnAssinar.innerHTML = '🔓 ASSINAR PLANO MENSAL • R$ 2,99';
+        btnAssinar.style.background = 'linear-gradient(45deg, #9b2a92, #6a1b9a)';
+        
+        // Atualiza info
+        infoPlano.innerHTML = '<strong>💡 Pagamento único de R$ 2,99</strong><br><small>Renova automaticamente a cada mês • Cancele quando quiser</small>';
+        infoPlano.style.background = '#f3e5f5';
+        infoPlano.style.color = '#4a148c';
+        
+    } else if (plano === 'anual') {
+        // Destaca plano anual
+        planoAnual.style.border = '3px solid #9b2a92';
+        planoAnual.style.background = '#faf5ff';
+        planoMensal.style.border = '2px solid #e0c3fc';
+        planoMensal.style.background = 'white';
+        checkAnual.style.display = 'block';
+        checkMensal.style.display = 'none';
+        
+        // Atualiza botão
+        btnAssinar.innerHTML = '🔓 ASSINAR PLANO ANUAL • R$ 29,90';
+        btnAssinar.style.background = 'linear-gradient(45deg, #6a1b9a, #9b2a92)';
+        
+        // Atualiza info
+        infoPlano.innerHTML = '<strong>💡 Pagamento único de R$ 29,90 por ano</strong><br><small>Equivale a apenas R$ 2,49/mês • Cancele quando quiser</small>';
+        infoPlano.style.background = '#e8eaf6';
+        infoPlano.style.color = '#283593';
+    }
+}
+
+function iniciarAssinaturaPaywall() {
+    console.log('🛒 Iniciando assinatura do plano:', planoSelecionadoPaywall);
+    
+    if (typeof AndroidBridge !== 'undefined') {
+        if (planoSelecionadoPaywall === 'anual') {
+            // Verifica se existe função específica para plano anual
+            if (AndroidBridge.purchaseYearlySubscription) {
+                console.log('📱 Chamando purchaseYearlySubscription()');
+                AndroidBridge.purchaseYearlySubscription();
+            } else if (AndroidBridge.purchaseSubscription) {
+                console.log('📱 Chamando purchaseSubscription("plano_anual")');
+                AndroidBridge.purchaseSubscription('plano_anual');
+            } else {
+                alert('Erro: Função de compra não disponível');
+            }
+        } else {
+            // Plano mensal
+            if (AndroidBridge.purchaseMonthlySubscription) {
+                console.log('📱 Chamando purchaseMonthlySubscription()');
+                AndroidBridge.purchaseMonthlySubscription();
+            } else if (AndroidBridge.purchaseSubscription) {
+                console.log('📱 Chamando purchaseSubscription("gerador_mensal")');
+                AndroidBridge.purchaseSubscription('gerador_mensal');
+            } else {
+                alert('Erro: Função de compra não disponível');
+            }
+        }
+    } else {
+        // Modo teste/desenvolvimento
+        console.log('🌐 Modo teste: simulando compra do plano', planoSelecionadoPaywall);
+        localStorage.setItem('premium_fake', 'true');
+        localStorage.removeItem('premium_expirado');
+        alert("⚠️ Modo de teste: Assinatura simulada! (Apenas para desenvolvimento)\n\nPlano selecionado: " + (planoSelecionadoPaywall === 'anual' ? 'Anual R$ 29,90' : 'Mensal R$ 2,99'));
+        location.reload();
+    }
+}
+
+// Atualiza a função iniciarCompra() para usar a nova função
+function iniciarCompra() {
+    // Se o paywall com planos estiver visível, usa a função de assinatura
+    if (document.getElementById('planoMensal')) {
+        iniciarAssinaturaPaywall();
+    } else {
+        // Fallback para comportamento antigo
+        console.log('🛒 Iniciando processo de compra (fallback)...');
+        if (typeof AndroidBridge !== 'undefined' && AndroidBridge.purchaseSubscription) {
+            AndroidBridge.purchaseSubscription();
+        } else if (typeof AndroidBridge !== 'undefined' && AndroidBridge.showPlansScreen) {
+            AndroidBridge.showPlansScreen();
+        } else {
+            console.log('🌐 Modo teste: simulando compra...');
+            localStorage.setItem('premium_fake', 'true');
+            localStorage.removeItem('premium_expirado');
+            alert("⚠️ Modo de teste: Assinatura simulada! (Apenas para desenvolvimento)");
+            location.reload();
+        }
+    }
+}
+        
+        // INICIALIZAÇÃO
+        window.onload = () => {
+            verificarStatusPremium();
+            zerarFinanceiro('lotofacil');
+            zerarFinanceiro('megasena');
+            contagemElite['lotofacil'] = { c14: 0, c15: 0, lista14: [], lista15: [], concursos_processados: [] };
+            contagemElite['megasena'] = { c14: 0, c15: 0, lista14: [], lista15: [], concursos_processados: [] };
+            limparEstatisticasJogos('lotofacil');
+            limparEstatisticasJogos('megasena');
+            buscar('lotofacil', 'latest');
+            buscar('megasena', 'latest');
+            unificarNovosBotoes();
+            atualizarBotoesSlot('lotofacil');
+            atualizarBotoesSlot('megasena');
+            restaurarAbaAposRecarregar();
+
+	   
+	    // Exibe as caixas de aviso
+            exibirCaixaAviso('lotofacil');
+            exibirCaixaAviso('megasena');
+
+          // O onclick já está definido no HTML como iniciarAssinaturaPaywall()
+          // Mas garantimos que funcione também programaticamente
+            const btnPaywall = document.getElementById('btnAssinarPaywall');
+                if (btnPaywall) {
+            btnPaywall.onclick = () => { iniciarAssinaturaPaywall(); };
+            }
+            
+            document.getElementById('restaurarCompra').onclick = () => { restaurarCompras(); };
+            
+            document.querySelectorAll('.plano-item').forEach(el => {
+                el.onclick = () => {
+                    document.querySelectorAll('.plano-item').forEach(p => p.classList.remove('selecionado'));
+                    el.classList.add('selecionado');
+                };
+            });
+        };
+    </script>
+</body>
+</html>
