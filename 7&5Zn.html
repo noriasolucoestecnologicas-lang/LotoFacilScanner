@@ -1214,8 +1214,26 @@
             cursor: pointer;
             font-size: 14px;
         }
+
+/* ============================================= */
+/* BLOQUEIO TEMPORÁRIO DO PAYWALL / TRIAL          */
+/* Não remove nada, só esconde da tela do usuário  */
+/* ============================================= */
+#paywall {
+    display: none !important;
+}
+#contadorTrialFixo {
+    display: none !important;
+}
+#trialBanner {
+    display: none !important;
+}
+/* ============================================= */
+		
     </style>
 </head>
+
+
 <body class="lf-theme">
 
     <!-- CONTADOR DE TRIAL FIXO -->
@@ -1223,12 +1241,8 @@
         🎉 <strong>Teste Grátis!</strong> Você tem <span id="diasRestantesFixo">7</span> dia(s) restantes - Clique para assinar
     </div>
 
-
-
-
-
   <!-- PAYWALL - TELA DE BOAS-VINDAS COM DOIS PLANOS -->
-<div id="paywall"   style="display: none;">
+<div id="paywall">
     <div class="paywall-card" style="max-height: 90vh; overflow-y: auto; padding: 25px 20px;">
         <div class="welcome-icon">🍀</div>
         <h2>LotoFácil Scanner</h2>
@@ -1312,8 +1326,6 @@
         </div>
     </div>
 </div>
-
-	
 
     <div id="modalCustom">
         <div class="modal-content">
@@ -2866,7 +2878,7 @@ function exibirCaixaAviso(tipo) {
             const classeAcerto = tipo === 'lotofacil' ? 'num-acertado-lf' : 'num-acertado-ms';
             if (dados[tipo].meusJogos.length === 0) {
                 lista.innerHTML = '<h3>Meus Jogos Salvos:</h3>';
-                resumo.innerHTML = "Nenhum jogo salvo. aaaa";
+                resumo.innerHTML = "Nenhum jogo salvo.";
                 atualizarPainelFinanceiro(tipo);
                 atualizarPainelElite(tipo);
                 atualizarPercentual(tipo);
@@ -3678,7 +3690,7 @@ function voltarParaApp() {
     }
 }
 
-/*
+
         // =============================================
 // FUNÇÕES PARA SELEÇÃO DE PLANOS NO PAYWALL
 // =============================================
@@ -3764,7 +3776,7 @@ function iniciarAssinaturaPaywall() {
         console.log('🌐 Modo teste: simulando compra do plano', planoSelecionadoPaywall);
         localStorage.setItem('premium_fake', 'true');
         localStorage.removeItem('premium_expirado');
-        alert("⚠️ Assinatura liberada! (Não houve uma nova cobrança));
+        alert("⚠️ Modo de teste: Assinatura simulada! (Apenas para desenvolvimento)\n\nPlano selecionado: " + (planoSelecionadoPaywall === 'anual' ? 'Anual R$ 29,90' : 'Mensal R$ 2,99'));
         location.reload();
     }
 }
@@ -3790,8 +3802,6 @@ function iniciarCompra() {
         }
     }
 }
-
-*/
         
         // INICIALIZAÇÃO
         window.onload = () => {
