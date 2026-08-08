@@ -1214,8 +1214,31 @@
             cursor: pointer;
             font-size: 14px;
         }
+
+/* ============================================= */
+/* BLOQUEIO TEMPORÁRIO DO PAYWALL / TRIAL          */
+/* Não remove nada, só esconde da tela do usuário  */
+/* ============================================= */
+#paywall {
+    display: none !important;
+}
+#contadorTrialFixo {
+    display: none !important;
+}
+#trialBanner {
+    display: none !important;
+}
+
+		
+body {
+    overflow: auto !important;
+}
+/* ============================================= */
+		
     </style>
 </head>
+
+
 <body class="lf-theme">
 
     <!-- CONTADOR DE TRIAL FIXO -->
